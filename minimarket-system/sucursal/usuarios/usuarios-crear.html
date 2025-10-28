@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sucursal - Crear Usuario</title>
+  <link rel="stylesheet" href="../assets/css/variables.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+  <link rel="stylesheet" href="../assets/css/pages.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="/minimarket-system/shared/js/utils.js"></script>
+  <script src="/minimarket-system/shared/js/notifications.js"></script>
+  <script src="/minimarket-system/shared/js/api.js"></script>
+  <script src="/minimarket-system/shared/js/auth.js"></script>
+  <script src="/minimarket-system/shared/js/validation.js"></script>
+  <script src="../assets/js/main.js"></script>
+</head>
+<body class="page usuarios-page">
+  <div id="navbar"></div>
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="container">
+      <h1>Crear Usuario</h1>
+      <div class="actions mb-4">
+        <a class="btn" href="usuarios.html">Listado</a>
+        <a class="btn" href="usuarios-editar.html">Editar</a>
+        <a class="btn" href="parametros.html">Parámetros</a>
+      </div>
+      <form id="formUsuario" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
+        <div>
+          <label class="label" for="nombre">Nombre</label>
+          <input class="input" id="nombre" name="nombre" data-validate="required|min:3" />
+        </div>
+        <div>
+          <label class="label" for="email">Correo</label>
+          <input class="input" id="email" name="email" data-validate="required|email" />
+        </div>
+        <div>
+          <label class="label" for="rol">Rol</label>
+          <select class="input" id="rol" name="rol" data-validate="required">
+            <option value="cajero">Cajero</option>
+            <option value="almacen">Almacén</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+        <div class="col-span-2">
+          <button class="btn btn-primary" type="submit">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </main>
+  <script>
+    $(function(){
+      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
+      $('#navbar').load('../components/navbar.html');
+      $('#sidebar').load('../components/sidebar.html');
+      $('#formUsuario').on('submit', async function(e){
+        e.preventDefault();
+        const errs = Validation.validateForm($(this));
+        if (errs.length) { Notifications.show('Corrige los campos', 'warning'); return; }
+        const data = Object.fromEntries(new FormData(this).entries());
+        const res = await API.post('/usuarios', data);
+        if (res.ok) { Notifications.show('Usuario creado', 'success'); }
+        else { Notifications.show('Error al crear usuario', 'danger'); }
+      });
+    });
+  </script>
+</body>
+</html>

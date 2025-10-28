@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sucursal - Compras Crear</title>
+  <link rel="stylesheet" href="../assets/css/variables.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+  <link rel="stylesheet" href="../assets/css/pages.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="/minimarket-system/shared/js/utils.js"></script>
+  <script src="/minimarket-system/shared/js/notifications.js"></script>
+  <script src="/minimarket-system/shared/js/api.js"></script>
+  <script src="/minimarket-system/shared/js/auth.js"></script>
+  <script src="../assets/js/main.js"></script>
+</head>
+<body class="page compras-page">
+  <div id="navbar"></div>
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="container">
+      <h1>Nueva Compra</h1>
+      <div class="actions mb-4">
+        <a class="btn" href="compras.html">Listado</a>
+        <a class="btn" href="recepcion.html">Recepción</a>
+      </div>
+      <form id="formCompra" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
+        <div>
+          <label class="label" for="proveedor">Proveedor</label>
+          <input class="input" id="proveedor" name="proveedor" data-validate="required" />
+        </div>
+        <div>
+          <label class="label" for="fecha">Fecha</label>
+          <input class="input" id="fecha" name="fecha" type="date" data-validate="required" />
+        </div>
+        <div class="col-span-2">
+          <label class="label" for="observaciones">Observaciones</label>
+          <textarea id="observaciones" name="observaciones" rows="3"></textarea>
+        </div>
+        <div class="col-span-2">
+          <button type="submit" class="btn btn-primary">Registrar</button>
+          <a class="btn" href="compras.html">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </main>
+  <script>
+    $(function(){
+      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
+      $('#navbar').load('../components/navbar.html');
+      $('#sidebar').load('../components/sidebar.html');
+      $('#formCompra').on('submit', async function(e){
+        e.preventDefault();
+        const errs = Validation.validateForm($(this));
+        if (errs.length) { Notifications.show('Revisa los campos del formulario', 'warning'); return; }
+        const data = Object.fromEntries(new FormData(this).entries());
+        const res = await API.post('/compras', data);
+        if (res.ok) { Notifications.show('Compra registrada', 'success'); location.href = 'compras.html'; }
+        else { Notifications.show('Error al registrar compra', 'danger'); }
+      });
+    });
+  </script>
+</body>
+</html>

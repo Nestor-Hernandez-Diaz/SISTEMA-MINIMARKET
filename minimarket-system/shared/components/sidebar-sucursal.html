@@ -1,17 +1,117 @@
 <aside class="sidebar">
-  <nav class="menu">
-    <a href="#" data-link="dashboard">Dashboard</a>
-    <a href="#" data-link="productos">Productos</a>
-    <a href="#" data-link="compras">Compras</a>
-    <a href="#" data-link="almacen">Almacén</a>
-    <a href="#" data-link="inventario">Inventario</a>
-    <a href="#" data-link="ventas">Ventas (POS)</a>
-    <a href="#" data-link="caja">Caja</a>
-    <a href="#" data-link="clientes">Clientes</a>
-    <a href="#" data-link="cotizaciones">Cotizaciones</a>
-    <a href="#" data-link="transferencias">Transferencias</a>
-    <a href="#" data-link="reportes">Reportes</a>
-    <a href="#" data-link="parametros">Parámetros</a>
-    <a href="#" data-link="usuarios">Usuarios</a>
+  <nav class="menu sidebar-menu">
+    <a class="menu-item" href="/minimarket-system/sucursal/dashboard.html">Dashboard</a>
+
+    <div class="menu-module" data-module="productos">
+      <button class="module-toggle">Productos</button>
+      <div class="submenu">
+        <a href="/minimarket-system/sucursal/productos/productos.html">Listado</a>
+        <a href="/minimarket-system/sucursal/productos/productos-crear.html">Crear</a>
+        <a href="/minimarket-system/sucursal/productos/productos-editar.html">Editar</a>
+        <a href="/minimarket-system/sucursal/productos/categorias.html">Categorías</a>
+        <a href="/minimarket-system/sucursal/productos/proveedores.html">Proveedores</a>
+      </div>
+    </div>
+
+    <div class="menu-module" data-module="compras">
+      <button class="module-toggle">Compras</button>
+      <div class="submenu">
+        <a href="/minimarket-system/sucursal/compras/compras.html">Listado</a>
+        <a href="/minimarket-system/sucursal/compras/compras-crear.html">Crear</a>
+        <a href="/minimarket-system/sucursal/compras/compras-detalle.html">Detalle</a>
+        <a href="/minimarket-system/sucursal/compras/recepcion.html">Recepción</a>
+      </div>
+    </div>
+
+    <div class="menu-module" data-module="almacen">
+      <button class="module-toggle">Almacén</button>
+      <div class="submenu">
+        <a href="/minimarket-system/sucursal/almacen/almacen.html">Listado</a>
+        <a href="/minimarket-system/sucursal/almacen/entradas.html">Entradas</a>
+        <a href="/minimarket-system/sucursal/almacen/salidas.html">Salidas</a>
+        <a href="/minimarket-system/sucursal/almacen/ajustes.html">Ajustes</a>
+        <a href="/minimarket-system/sucursal/almacen/kardex.html">Kardex</a>
+      </div>
+    </div>
+
+    <div class="menu-module" data-module="inventario">
+      <button class="module-toggle">Inventario</button>
+      <div class="submenu">
+        <a href="/minimarket-system/sucursal/inventario/inventario.html">Listado</a>
+        <a href="/minimarket-system/sucursal/inventario/alertas.html">Alertas</a>
+        <a href="/minimarket-system/sucursal/inventario/valorizacion.html">Valorización</a>
+      </div>
+    </div>
+
+    <div class="menu-module" data-module="ventas">
+      <button class="module-toggle">Ventas</button>
+      <div class="submenu">
+        <a href="/minimarket-system/sucursal/ventas/historial.html">Historial</a>
+        <a href="/minimarket-system/sucursal/ventas/detalle-venta.html">Detalle</a>
+        <a href="/minimarket-system/sucursal/ventas/devoluciones.html">Devoluciones</a>
+        <a href="/minimarket-system/sucursal/ventas/pos.html">POS</a>
+      </div>
+    </div>
+
+    <div class="menu-module" data-module="caja">
+      <button class="module-toggle">Caja</button>
+      <div class="submenu">
+        <a href="/minimarket-system/sucursal/caja/caja.html">Resumen</a>
+        <a href="/minimarket-system/sucursal/caja/apertura.html">Apertura</a>
+        <a href="/minimarket-system/sucursal/caja/arqueo.html">Arqueo</a>
+        <a href="/minimarket-system/sucursal/caja/movimientos.html">Movimientos</a>
+        <a href="/minimarket-system/sucursal/caja/cierre.html">Cierre</a>
+      </div>
+    </div>
+
+    <div class="menu-module" data-module="clientes">
+      <button class="module-toggle">Clientes</button>
+      <div class="submenu">
+        <a href="/minimarket-system/sucursal/clientes/clientes.html">Listado</a>
+        <a href="/minimarket-system/sucursal/clientes/clientes-crear.html">Crear</a>
+        <a href="/minimarket-system/sucursal/clientes/clientes-editar.html">Editar</a>
+        <a href="/minimarket-system/sucursal/clientes/creditos.html">Créditos</a>
+      </div>
+    </div>
+
+    <div class="menu-module" data-module="cotizaciones">
+      <button class="module-toggle">Cotizaciones</button>
+      <div class="submenu">
+        <a href="/minimarket-system/sucursal/cotizaciones/cotizaciones.html">Listado</a>
+        <a href="/minimarket-system/sucursal/cotizaciones/cotizaciones-crear.html">Crear</a>
+        <a href="/minimarket-system/sucursal/cotizaciones/cotizaciones-detalle.html">Detalle</a>
+      </div>
+    </div>
+
+    <div class="menu-module" data-module="transferencias">
+      <button class="module-toggle">Transferencias</button>
+      <div class="submenu">
+        <a href="/minimarket-system/sucursal/transferencias/transferencias.html">Listado</a>
+        <a href="/minimarket-system/sucursal/transferencias/solicitar.html">Solicitar</a>
+        <a href="/minimarket-system/sucursal/transferencias/aprobar.html">Aprobar</a>
+        <a href="/minimarket-system/sucursal/transferencias/historial.html">Historial</a>
+      </div>
+    </div>
+
+    <div class="menu-module" data-module="reportes">
+      <button class="module-toggle">Reportes</button>
+      <div class="submenu">
+        <a href="/minimarket-system/sucursal/reportes/reportes.html">Panel</a>
+        <a href="/minimarket-system/sucursal/reportes/reporte-ventas.html">Ventas</a>
+        <a href="/minimarket-system/sucursal/reportes/reporte-compras.html">Compras</a>
+        <a href="/minimarket-system/sucursal/reportes/reporte-inventario.html">Inventario</a>
+        <a href="/minimarket-system/sucursal/reportes/reporte-caja.html">Caja</a>
+      </div>
+    </div>
+
+    <div class="menu-module" data-module="usuarios">
+      <button class="module-toggle">Usuarios</button>
+      <div class="submenu">
+        <a href="/minimarket-system/sucursal/usuarios/usuarios.html">Listado</a>
+        <a href="/minimarket-system/sucursal/usuarios/usuarios-crear.html">Crear</a>
+        <a href="/minimarket-system/sucursal/usuarios/usuarios-editar.html">Editar</a>
+        <a href="/minimarket-system/sucursal/usuarios/parametros.html">Parámetros</a>
+      </div>
+    </div>
   </nav>
 </aside>
