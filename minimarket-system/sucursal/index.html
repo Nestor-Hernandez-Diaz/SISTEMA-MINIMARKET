@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sucursal - Acceso</title>
+  <link rel="stylesheet" href="assets/css/variables.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/pages.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="/minimarket-system/shared/js/utils.js"></script>
+  <script src="/minimarket-system/shared/js/validation.js"></script>
+  <script src="/minimarket-system/shared/js/notifications.js"></script>
+  <script src="/minimarket-system/shared/js/auth.js"></script>
+</head>
+<body class="page">
+  <div id="navbar"></div>
+  <main class="main">
+    <div class="container">
+      <div class="card" style="max-width:480px;margin:40px auto;">
+        <div class="card-header">Acceso Sucursal</div>
+        <div class="card-body">
+          <form id="loginForm">
+            <label class="label" for="usuario">Usuario</label>
+            <input class="input" id="usuario" name="usuario" data-validate="required|min:3" />
+            <label class="label mt-4" for="password">Contraseña</label>
+            <input type="password" class="input" id="password" name="password" data-validate="required|min:4" />
+            <button class="btn btn-primary mt-4" type="submit">Ingresar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    $('#loginForm').on('submit', async function(e){
+      e.preventDefault();
+      const errors = Validation.validateForm($(this));
+      if (errors.length) return Notifications.show('Completa los campos requeridos', 'warning');
+      const usuario = $('#usuario').val();
+      const password = $('#password').val();
+      const res = await Auth.login({ usuario, password, rol: 'sucursal' });
+      if (res.ok) location.href = 'dashboard.html'; else Notifications.show(res.error || 'Error de acceso', 'danger');
+    });
+  </script>
+</body>
+</html>
