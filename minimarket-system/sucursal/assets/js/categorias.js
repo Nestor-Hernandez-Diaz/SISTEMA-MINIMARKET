@@ -1,6 +1,7 @@
 // Módulo de gestión de categorías
 window.Categorias = (function() {
   let categorias = [];
+  let productos = [];
   let currentId = null;
 
   // Estado de paginación y filtros
@@ -14,6 +15,8 @@ window.Categorias = (function() {
   const loadData = async () => {
     try {
       categorias = await API.get('/api/categorias');
+      // Cargar productos para poder mostrar conteo por categoría
+      productos = await API.get('/api/productos');
       return true;
     } catch (e) {
       Notifications.show('Error al cargar categorías', 'danger');
@@ -58,17 +61,20 @@ window.Categorias = (function() {
     if (paginated.data.length === 0) {
       $tbody.html('<tr><td colspan="4" class="text-center text-muted">No hay categorías para mostrar</td></tr>');
     } else {
-      $tbody.html(paginated.data.map(c => `
+      $tbody.html(paginated.data.map(c => {
+        const count = productos.filter(p => p.categoria_id === c.id).length;
+        return `
         <tr data-id="${c.id}">
           <td><strong>${c.nombre}</strong></td>
           <td>${c.descripcion || '-'}</td>
-          <td>-</td>
+          <td>${count}</td>
           <td>
             <button class="btn btn-sm btn-primary" data-action="edit" data-id="${c.id}">Editar</button>
             <button class="btn btn-sm btn-danger" data-action="delete" data-id="${c.id}">Eliminar</button>
           </td>
         </tr>
-      `).join(''));
+        `;
+      }).join(''));
     }
 
     renderPagination(paginated.pages);
@@ -95,46 +101,28 @@ window.Categorias = (function() {
     $pagination.html(buttons.join(''));
   };
 
-  // Abrir modal para crear/editar
+  // Abrir modal para crear/editar usando modal-template
   const openModal = (id = null) => {
     currentId = id;
     const categoria = id ? categorias.find(c => c.id === id) : null;
-
-    const modalHtml = `
-      <div class="modal-backdrop active" id="modalCategoria">
-        <div class="modal">
-          <div class="modal-header">
-            <h3>${id ? 'Editar' : 'Nueva'} Categoría</h3>
-            <button class="btn-close" data-action="close-modal">&times;</button>
-          </div>
-          <div class="modal-body">
-            <form id="formCategoria">
-              <div class="mb-3">
-                <label class="label" for="nombre">Nombre *</label>
-                <input type="text" class="input" id="nombre" required value="${categoria?.nombre || ''}" />
-              </div>
-              <div class="mb-3">
-                <label class="label" for="descripcion">Descripción</label>
-                <textarea class="input" id="descripcion" rows="3">${categoria?.descripcion || ''}</textarea>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button class="btn" data-action="close-modal">Cancelar</button>
-            <button class="btn btn-primary" data-action="save-categoria">Guardar</button>
-          </div>
+    const title = id ? 'Editar Categoría' : 'Nueva Categoría';
+    const bodyHtml = `
+      <form id="formCategoria">
+        <div class="mb-3">
+          <label class="label" for="nombre">Nombre *</label>
+          <input type="text" class="input" id="nombre" required value="${categoria?.nombre || ''}" />
         </div>
-      </div>
+        <div class="mb-3">
+          <label class="label" for="descripcion">Descripción</label>
+          <textarea class="input" id="descripcion" rows="3">${categoria?.descripcion || ''}</textarea>
+        </div>
+      </form>
     `;
-
-    $('body').append(modalHtml);
+    Modales.open(title, bodyHtml, {
+      confirmText: 'Guardar',
+      onConfirm: guardar
+    });
     $('#nombre').focus();
-  };
-
-  // Cerrar modal
-  const closeModal = () => {
-    $('#modalCategoria').remove();
-    currentId = null;
   };
 
   // Guardar categoría
@@ -167,7 +155,8 @@ window.Categorias = (function() {
     }
 
     if (success.ok) {
-      closeModal();
+      Modales.close();
+      currentId = null;
       renderTable();
     } else {
       Notifications.show('Error al guardar categoría', 'danger');
@@ -217,14 +206,12 @@ window.Categorias = (function() {
     $(document).on('click', '[data-action="delete"]', function() {
       eliminar(Number($(this).data('id')));
     });
-    $(document).on('click', '[data-action="close-modal"]', closeModal);
-    $(document).on('click', '[data-action="save-categoria"]', guardar);
-
-    // Cerrar modal con ESC
+    // El modal genérico maneja cancelar/confirmar; sólo añadimos ESC para cerrar
     $(document).on('keydown', function(e) {
-      if (e.key === 'Escape' && $('#modalCategoria').length) closeModal();
+      if (e.key === 'Escape' && $('#modalBackdrop').length && $('#modalBackdrop').hasClass('show')) {
+        Modales.close();
+      }
     });
-
     renderTable();
   };
 

@@ -8,7 +8,7 @@ $(function() {
 
   // Sidebar sucursal con caché de HTML para evitar recarga por navegación
   const loadSidebarCached = (selector, url) => {
-    const CACHE_KEY = 'sidebar:sucursal:html';
+    const CACHE_KEY = 'sidebar:sucursal:html:v2';
     const cached = sessionStorage.getItem(CACHE_KEY);
     if (cached) {
       $(selector).html(cached);

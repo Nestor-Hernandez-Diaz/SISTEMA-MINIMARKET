@@ -244,7 +244,15 @@ window.Compras = (function() {
       const result = await API.post('/api/compras', data);
       if (result.ok) {
         Notifications.show('Orden de compra creada exitosamente', 'success');
-        setTimeout(() => { window.location.href = 'compras.html'; }, 1500);
+        // Si está abierto el modal, cerrar y refrescar listado; si no, redirigir
+        if ($('#modalBackdrop').length && $('#modalBackdrop').hasClass('show')) {
+          Modales.close();
+          await loadData();
+          state.page = 1;
+          renderTable();
+        } else {
+          setTimeout(() => { window.location.href = 'compras.html'; }, 500);
+        }
       } else {
         Notifications.show('Error al crear orden de compra', 'danger');
       }
@@ -313,20 +321,118 @@ window.Compras = (function() {
 
     $(document).on('click', '[data-action="view"]', function() {
       const id = $(this).data('id');
-      window.location.href = `compras-detalle.html?id=${id}`;
+      openCompraDetalleModal(id);
     });
 
     $(document).on('click', '[data-action="receive"]', function() {
       const id = $(this).data('id');
-      window.location.href = `recepcion.html?id=${id}`;
+      openRecepcionModal(id);
+    });
+
+    $(document).on('click', '[data-action="new-compra"]', function() {
+      openCompraModal();
     });
 
     renderTable();
   };
 
+  // Abrir modal para nueva compra e inyectar el formulario parcial
+  const openCompraModal = async () => {
+    Modales.open('Nueva Orden de Compra', '<div id="modalCompraBody"></div>', {
+      confirmText: 'Registrar',
+      onConfirm: () => { $('#formCompra').trigger('submit'); }
+    });
+    await Utils.loadComponent('#modalBody', '/minimarket-system/sucursal/compras/compras-crear.html');
+    await bindCrear();
+  };
+
+  // Abrir modal para detalle de compra
+  const openCompraDetalleModal = async (id) => {
+    const compra = compras.find(c => c.id === Number(id));
+    Modales.open('Detalle de Compra', '<div id="modalDetalleBody"></div>', {
+      confirmText: 'Cerrar',
+      onConfirm: () => { Modales.close(); }
+    });
+    await Utils.loadComponent('#modalBody', '/minimarket-system/sucursal/compras/compras-detalle.html');
+
+    if (!compra) {
+      $('#detalleTableContainer').html('<div class="text-muted">No se encontró la compra seleccionada.</div>');
+      return;
+    }
+
+    $('#detalleNumero').text(compra.numero || compra.id);
+    $('#detalleFecha').text(compra.fecha || '-');
+    $('#detalleProveedor').text(compra.proveedor_nombre || '-');
+    $('#detalleEstado').text(compra.estado || '-');
+    $('#detalleSubtotal').text(Utils.formatCurrency(compra.subtotal || 0));
+    $('#detalleIgv').text(Utils.formatCurrency(compra.igv || 0));
+    $('#detalleTotal').text(Utils.formatCurrency(compra.total || 0));
+
+    const items = compra.items || [];
+    if (!items.length) {
+      $('#detalleTableContainer').html('<div class="text-muted">No hay ítems para esta compra.</div>');
+    } else {
+      const rows = items.map(it => `
+        <tr>
+          <td>${it.codigo || '-'}</td>
+          <td>${it.nombre || (productos.find(p => p.id === it.producto_id)?.nombre || '-')}</td>
+          <td>${it.cantidad}</td>
+          <td>${Utils.formatCurrency(it.precio_costo)}</td>
+          <td>${Utils.formatCurrency((it.cantidad || 0) * (it.precio_costo || 0))}</td>
+        </tr>
+      `).join('');
+      $('#detalleTableContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio costo</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `);
+    }
+  };
+
+  // Abrir modal para recepción de compra
+  const openRecepcionModal = async (id) => {
+    Modales.open('Recepción de Mercancía', '<div id="modalRecepcionBody"></div>', {
+      confirmText: 'Registrar',
+      onConfirm: () => { $('#formRecepcion').trigger('submit'); }
+    });
+    await Utils.loadComponent('#modalBody', '/minimarket-system/sucursal/compras/recepcion.html');
+
+    if (id) $('#compraId').val(id);
+
+    // Enlazar envío del formulario de recepción
+    $('#formRecepcion').on('submit', async function(e){
+      e.preventDefault();
+      const errs = Validation.validateForm($(this));
+      if (errs.length) { Notifications.show('Revisa los campos del formulario', 'warning'); return; }
+      const data = Object.fromEntries(new FormData(this).entries());
+      const res = await API.post('/recepcion', data);
+      if (res.ok) {
+        Notifications.show('Recepción registrada', 'success');
+        Modales.close();
+        await loadData();
+        state.page = 1;
+        renderTable();
+      } else {
+        Notifications.show('Error al registrar recepción', 'danger');
+      }
+    });
+  };
+
   return {
     bindListado,
     bindCrear,
-    getCompraById: (id) => compras.find(c => c.id === Number(id))
+    getCompraById: (id) => compras.find(c => c.id === Number(id)),
+    openCompraModal,
+    openCompraDetalleModal,
+    openRecepcionModal
   };
 })();

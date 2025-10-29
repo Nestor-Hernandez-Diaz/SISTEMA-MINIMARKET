@@ -14,6 +14,8 @@
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
   <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/forms.js"></script>
+  <script src="../assets/js/modales.js"></script>
   <script src="../assets/js/productos.js"></script>
 </head>
 <body class="page productos-page">
@@ -23,14 +25,16 @@
     <div class="container">
       <div class="flex justify-between items-center mb-4">
         <h1>Productos</h1>
-        <a href="productos-crear.html" class="btn btn-primary">Nuevo Producto</a>
+        <button class="btn btn-primary" data-action="new-producto">Nuevo Producto</button>
       </div>
       <div id="tableContainer"></div>
     </div>
   </main>
   <div id="notificationsContainer"></div>
+  <div id="modalContainer"></div>
   <script>
     Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html')
+      .then(() => Utils.loadComponent('#modalContainer', '/minimarket-system/shared/components/modal-template.html'))
       .then(() => Productos.bindListado());
   </script>
 </body>

@@ -1,0 +1,28 @@
+# Plantilla de Mensaje de Commit - Sistema Minimarket
+# 
+# Formato: tipo(alcance): descripción breve
+#
+# Tipos disponibles:
+# feat     - Nueva funcionalidad
+# fix      - Corrección de errores  
+# docs     - Cambios en documentación
+# style    - Cambios de formato (CSS, espacios, etc.)
+# refactor - Refactorización de código
+# test     - Agregar o modificar pruebas
+# chore    - Tareas de mantenimiento
+#
+# Alcances sugeridos:
+# compras, productos, ventas, inventario, clientes, 
+# usuarios, reportes, dashboard, sidebar, modal
+#
+# Ejemplos:
+# feat(compras): agregar modal para crear proveedores
+# fix(sidebar): corregir enlaces rotos en navegación  
+# style(productos): mejorar diseño de tabla
+# docs: actualizar guía de colaboración
+#
+# Descripción detallada (opcional):
+# - Explicar el QUÉ y POR QUÉ, no el CÓMO
+# - Usar presente imperativo: "agregar" no "agregado"
+# - Máximo 72 caracteres por línea
+# - Referenciar issues: "Closes #123"

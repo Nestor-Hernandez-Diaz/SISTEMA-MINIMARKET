@@ -1,0 +1,31 @@
+<!-- Parcial de formulario de proveedor para uso en modal-template -->
+<div class="card">
+  <div class="card-header">Proveedor</div>
+  <div class="card-body">
+    <form id="formProveedor" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
+      <div class="col-span-2">
+        <label class="label" for="nombre">Nombre / Razón Social</label>
+        <input class="input" id="nombre" name="nombre" data-validate="required" />
+      </div>
+      <div>
+        <label class="label" for="ruc">RUC</label>
+        <input class="input" id="ruc" name="ruc" maxlength="11" data-validate="minLength:8" />
+      </div>
+      <div>
+        <label class="label" for="telefono">Teléfono</label>
+        <input class="input" id="telefono" name="telefono" />
+      </div>
+      <div>
+        <label class="label" for="email">Email</label>
+        <input class="input" id="email" name="email" data-validate="email" />
+      </div>
+      <div>
+        <label class="label" for="direccion">Dirección</label>
+        <textarea id="direccion" name="direccion" rows="2"></textarea>
+      </div>
+      <div class="col-span-2">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
