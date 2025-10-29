@@ -10,52 +10,961 @@
   <link rel="stylesheet" href="../assets/css/pages.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="/minimarket-system/shared/js/utils.js"></script>
+  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="/minimarket-system/shared/js/notifications.js"></script>
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
-  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="../assets/js/main.js"></script>
 </head>
-<body class="page cotizaciones-page">
+<body class="page cotizaciones-crear-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Nueva Cotización</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="cotizaciones.html">Listado</a>
-        <a class="btn" href="cotizaciones-detalle.html">Detalle</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <div>
+          <h1 class="text-xl fw-600">Crear Nueva Cotización</h1>
+          <p class="text-muted text-sm">Complete los datos para generar la cotización</p>
+        </div>
+        <div>
+          <button class="btn btn-secondary" onclick="cancelar()">
+            Cancelar
+          </button>
+          <button class="btn btn-success" onclick="guardarYEnviar()">
+            Guardar y Enviar
+          </button>
+          <button class="btn btn-primary" onclick="guardarCotizacion()">
+            Guardar Cotización
+          </button>
+        </div>
       </div>
-      <form id="formCotizacion" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
-        <div>
-          <label class="label" for="cliente">Cliente</label>
-          <input class="input" id="cliente" name="cliente" data-validate="required|min:3" />
+
+      <!-- Información General -->
+      <div class="form-row mb-4">
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="text-lg fw-600">Información del Cliente</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group col-md-8">
+                  <label for="cliente" class="form-label required">Cliente</label>
+                  <div style="display: flex; gap: 10px;">
+                    <select id="cliente" class="input" required onchange="cargarInfoCliente()" style="flex: 1;">
+                      <option value="">Seleccionar cliente</option>
+                      <option value="1">Juan Pérez García - DNI: 45678912</option>
+                      <option value="2">María García Torres - DNI: 78945612</option>
+                      <option value="3">Comercial López SAC - RUC: 20456789123</option>
+                      <option value="4">Roberto Sánchez Díaz - DNI: 12345678</option>
+                      <option value="5">Ana Rodríguez Vega - DNI: 87654321</option>
+                    </select>
+                    <button type="button" class="btn btn-success" onclick="nuevoCliente()">
+                      Nuevo
+                    </button>
+                  </div>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="tipo_documento" class="form-label">Tipo Documento</label>
+                  <select id="tipo_documento" class="input">
+                    <option value="boleta">Boleta</option>
+                    <option value="factura">Factura</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="infoCliente" class="alert alert-info" style="display: none;">
+                <!-- Se carga dinámicamente -->
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="contacto" class="form-label">Persona de Contacto</label>
+                  <input 
+                    type="text" 
+                    id="contacto" 
+                    class="input" 
+                    placeholder="Nombre del contacto"
+                  />
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="telefono_contacto" class="form-label">Teléfono de Contacto</label>
+                  <input 
+                    type="tel" 
+                    id="telefono_contacto" 
+                    class="input" 
+                    placeholder="987654321"
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="observaciones" class="form-label">Observaciones</label>
+                <textarea 
+                  id="observaciones" 
+                  class="input" 
+                  rows="2"
+                  placeholder="Observaciones o notas adicionales"
+                ></textarea>
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <label class="label" for="fecha">Fecha</label>
-          <input class="input" id="fecha" name="fecha" type="date" data-validate="required" />
+
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="text-lg fw-600">Datos de la Cotización</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label for="numero_cotizacion" class="form-label">N° Cotización</label>
+                <input 
+                  type="text" 
+                  id="numero_cotizacion" 
+                  class="input" 
+                  value="COT-00157"
+                  readonly
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="fecha_emision" class="form-label required">Fecha de Emisión</label>
+                <input 
+                  type="date" 
+                  id="fecha_emision" 
+                  class="input" 
+                  required 
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="dias_validez" class="form-label required">Días de Validez</label>
+                <select id="dias_validez" class="input" required onchange="calcularVencimiento()">
+                  <option value="7">7 días</option>
+                  <option value="15" selected>15 días</option>
+                  <option value="30">30 días</option>
+                  <option value="45">45 días</option>
+                  <option value="60">60 días</option>
+                  <option value="90">90 días</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="fecha_vencimiento" class="form-label">Válido Hasta</label>
+                <input 
+                  type="date" 
+                  id="fecha_vencimiento" 
+                  class="input" 
+                  readonly
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="vendedor" class="form-label">Vendedor</label>
+                <input 
+                  type="text" 
+                  id="vendedor" 
+                  class="input" 
+                  value="Usuario Actual"
+                  readonly
+                />
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="col-span-2">
-          <button class="btn btn-primary" type="submit">Guardar</button>
+      </div>
+
+      <!-- Búsqueda y Selección de Productos -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Agregar Productos</h2>
         </div>
-      </form>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group col-md-8">
+              <label for="buscar_producto" class="form-label">Buscar Producto</label>
+              <input 
+                type="text" 
+                id="buscar_producto" 
+                class="input" 
+                placeholder="Buscar por código, nombre o código de barras..."
+                onkeyup="buscarProducto()"
+              />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="categoria_filtro" class="form-label">Categoría</label>
+              <select id="categoria_filtro" class="input" onchange="filtrarPorCategoria()">
+                <option value="">Todas las categorías</option>
+                <option value="abarrotes">Abarrotes</option>
+                <option value="bebidas">Bebidas</option>
+                <option value="lacteos">Lácteos</option>
+                <option value="limpieza">Limpieza</option>
+                <option value="snacks">Snacks</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="resultadosBusqueda" class="productos-grid" style="display: none;">
+            <!-- Se llenan dinámicamente -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalle de la Cotización -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Detalle de la Cotización</h2>
+        </div>
+        <div class="card-body" style="overflow-x: auto;">
+          <div class="table-responsive">
+            <table class="table" id="tablaDetalle">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th style="min-width: 100px;">Código</th>
+                  <th style="min-width: 250px;">Producto</th>
+                  <th style="width: 120px;">Cantidad</th>
+                  <th style="width: 120px;">Precio Unit.</th>
+                  <th style="width: 100px;">Desc. %</th>
+                  <th style="width: 120px;">Subtotal</th>
+                  <th style="width: 80px;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="detalleItems">
+                <tr class="empty-state">
+                  <td colspan="8" class="text-center text-muted">
+                    <div style="padding: 40px 20px;">
+                      <div style="font-size: 48px; margin-bottom: 10px;">📦</div>
+                      <p>No hay productos agregados</p>
+                      <p class="text-sm">Busque y seleccione productos para agregar a la cotización</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Totales -->
+          <div class="form-row" style="margin-top: 20px;">
+            <div class="col-md-8">
+              <div class="form-group">
+                <label for="notas_adicionales" class="form-label">Notas Adicionales</label>
+                <textarea 
+                  id="notas_adicionales" 
+                  class="input" 
+                  rows="3"
+                  placeholder="Condiciones de pago, garantías, tiempo de entrega, etc."
+                ></textarea>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card" style="background: var(--color-surface);">
+                <div class="card-body">
+                  <div class="totales-cotizacion">
+                    <div class="total-item">
+                      <span>Subtotal:</span>
+                      <strong id="subtotal">S/ 0.00</strong>
+                    </div>
+                    <div class="total-item">
+                      <span>Descuento:</span>
+                      <strong id="descuento" class="text-danger">S/ 0.00</strong>
+                    </div>
+                    <div class="total-item">
+                      <span>IGV (18%):</span>
+                      <strong id="igv">S/ 0.00</strong>
+                    </div>
+                    <div class="total-item total-final">
+                      <span>Total:</span>
+                      <strong id="total" class="text-primary">S/ 0.00</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Condiciones -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Condiciones Comerciales</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group col-md-3">
+              <label for="forma_pago" class="form-label">Forma de Pago</label>
+              <select id="forma_pago" class="input">
+                <option value="efectivo">Efectivo</option>
+                <option value="tarjeta">Tarjeta</option>
+                <option value="transferencia">Transferencia</option>
+                <option value="credito">Crédito</option>
+                <option value="mixto">Mixto</option>
+              </select>
+            </div>
+            <div class="form-group col-md-3">
+              <label for="tiempo_entrega" class="form-label">Tiempo de Entrega</label>
+              <input 
+                type="text" 
+                id="tiempo_entrega" 
+                class="input" 
+                placeholder="Ej: 24-48 horas"
+              />
+            </div>
+            <div class="form-group col-md-3">
+              <label for="lugar_entrega" class="form-label">Lugar de Entrega</label>
+              <input 
+                type="text" 
+                id="lugar_entrega" 
+                class="input" 
+                placeholder="Dirección de entrega"
+              />
+            </div>
+            <div class="form-group col-md-3">
+              <label for="garantia" class="form-label">Garantía</label>
+              <input 
+                type="text" 
+                id="garantia" 
+                class="input" 
+                placeholder="Ej: 30 días"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="terminos_condiciones" class="form-label">Términos y Condiciones</label>
+            <textarea 
+              id="terminos_condiciones" 
+              class="input" 
+              rows="4"
+              placeholder="Términos y condiciones adicionales..."
+            >1. Precios sujetos a disponibilidad de stock.
+2. Válido por el periodo indicado.
+3. No incluye transporte.
+4. Entrega contra pago.</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones Finales -->
+      <div class="card">
+        <div class="card-body">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <label style="margin: 0;">
+                <input type="checkbox" id="enviar_email" checked />
+                Enviar por correo electrónico
+              </label>
+              <label style="margin: 0 0 0 20px;">
+                <input type="checkbox" id="enviar_whatsapp" checked />
+                Enviar por WhatsApp
+              </label>
+            </div>
+            <div>
+              <button class="btn btn-secondary" onclick="cancelar()">
+                Cancelar
+              </button>
+              <button class="btn btn-info" onclick="vistaPrevia()">
+                Vista Previa
+              </button>
+              <button class="btn btn-success" onclick="guardarYEnviar()">
+                Guardar y Enviar
+              </button>
+              <button class="btn btn-primary" onclick="guardarCotizacion()">
+                Guardar Cotización
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
+  <!-- Modal Nuevo Cliente Rápido -->
+  <div id="modalNuevoCliente" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="text-lg fw-600">Nuevo Cliente Rápido</h2>
+        <button class="modal-close" onclick="cerrarModalCliente()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="formNuevoCliente">
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="tipo_doc_nuevo" class="form-label required">Tipo Documento</label>
+              <select id="tipo_doc_nuevo" class="input" required>
+                <option value="dni">DNI</option>
+                <option value="ruc">RUC</option>
+                <option value="ce">Carnet de Extranjería</option>
+              </select>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="num_doc_nuevo" class="form-label required">Número</label>
+              <div style="display: flex; gap: 10px;">
+                <input 
+                  type="text" 
+                  id="num_doc_nuevo" 
+                  class="input" 
+                  required 
+                  placeholder="12345678"
+                />
+                <button type="button" class="btn btn-secondary" onclick="buscarDocumento()">
+                  Buscar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="nombre_nuevo" class="form-label required">Nombre / Razón Social</label>
+            <input 
+              type="text" 
+              id="nombre_nuevo" 
+              class="input" 
+              required 
+              placeholder="Nombre completo o razón social"
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="telefono_nuevo" class="form-label required">Teléfono</label>
+              <input 
+                type="tel" 
+                id="telefono_nuevo" 
+                class="input" 
+                required 
+                placeholder="987654321"
+              />
+            </div>
+            <div class="form-group col-md-6">
+              <label for="email_nuevo" class="form-label">Email</label>
+              <input 
+                type="email" 
+                id="email_nuevo" 
+                class="input" 
+                placeholder="cliente@email.com"
+              />
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalCliente()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Guardar Cliente
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .productos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+    }
+
+    .producto-card {
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: white;
+    }
+
+    .producto-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+    }
+
+    .producto-card .producto-nombre {
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+    }
+
+    .producto-card .producto-codigo {
+      color: var(--color-text-muted);
+      font-size: 0.8rem;
+      margin-bottom: 5px;
+    }
+
+    .producto-card .producto-precio {
+      color: var(--color-primary);
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .producto-card .producto-stock {
+      font-size: 0.8rem;
+      margin-top: 5px;
+    }
+
+    .totales-cotizacion {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .total-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .total-final {
+      border-bottom: none;
+      padding-top: 15px;
+      border-top: 2px solid var(--color-border);
+      font-size: 1.2rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--color-text-muted);
+    }
+
+    #tablaDetalle input[type="number"] {
+      width: 100%;
+      padding: 5px;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+    }
+
+    #tablaDetalle tbody tr:not(.empty-state) {
+      transition: background-color 0.2s;
+    }
+
+    #tablaDetalle tbody tr:not(.empty-state):hover {
+      background-color: rgba(0, 123, 255, 0.05);
+    }
+  </style>
+
   <script>
-    $(function(){
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
-      $('#formCotizacion').on('submit', async function(e){
-        e.preventDefault();
-        const errs = Validation.validateForm($(this));
-        if (errs.length) { Notifications.show('Revisa los datos', 'warning'); return; }
-        const data = Object.fromEntries(new FormData(this).entries());
-        const res = await API.post('/cotizaciones', data);
-        if (res.ok) { Notifications.show('Cotización creada', 'success'); }
-        else { Notifications.show('Error al crear cotización', 'danger'); }
-      });
+    let itemsCotizacion = [];
+    let contadorItems = 0;
+    
+    $(function(){ 
+      if (!Auth.requireRole(['sucursal', 'admin', 'vendedor'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
+      
+      // Establecer fecha actual
+      const hoy = new Date().toISOString().split('T')[0];
+      $('#fecha_emision').val(hoy);
+      calcularVencimiento();
+      
+      // Verificar si es edición o duplicado
+      const urlParams = new URLSearchParams(window.location.search);
+      const editar = urlParams.get('editar');
+      const duplicar = urlParams.get('duplicar');
+      
+      if (editar) {
+        cargarCotizacion(editar);
+      } else if (duplicar) {
+        duplicarCotizacionExistente(duplicar);
+      }
     });
+    
+    function calcularVencimiento() {
+      const fechaEmision = new Date($('#fecha_emision').val());
+      const diasValidez = parseInt($('#dias_validez').val());
+      
+      if (fechaEmision && diasValidez) {
+        const fechaVencimiento = new Date(fechaEmision);
+        fechaVencimiento.setDate(fechaVencimiento.getDate() + diasValidez);
+        $('#fecha_vencimiento').val(fechaVencimiento.toISOString().split('T')[0]);
+      }
+    }
+    
+    $('#fecha_emision').on('change', calcularVencimiento);
+    
+    function cargarInfoCliente() {
+      const clienteId = $('#cliente').val();
+      
+      if (clienteId) {
+        // Simulación de carga de datos
+        $('#infoCliente').html(`
+          <div class="form-row">
+            <div class="col-md-6">
+              <strong>Documento:</strong> DNI 45678912<br>
+              <strong>Teléfono:</strong> 987-654-321<br>
+              <strong>Email:</strong> cliente@email.com
+            </div>
+            <div class="col-md-6">
+              <strong>Dirección:</strong> Av. Principal 123<br>
+              <strong>Distrito:</strong> San Isidro, Lima<br>
+              <strong>Límite Crédito:</strong> S/ 5,000.00
+            </div>
+          </div>
+        `).fadeIn(200);
+        
+        // Autocompletar campos
+        $('#contacto').val('Juan Pérez García');
+        $('#telefono_contacto').val('987654321');
+      } else {
+        $('#infoCliente').fadeOut(200);
+      }
+    }
+    
+    function buscarProducto() {
+      const termino = $('#buscar_producto').val().toLowerCase();
+      
+      if (termino.length < 2) {
+        $('#resultadosBusqueda').fadeOut(200);
+        return;
+      }
+      
+      // Simulación de productos
+      const productos = [
+        { id: 1, codigo: 'PROD001', nombre: 'Arroz Extra 1kg', precio: 4.50, stock: 150, categoria: 'abarrotes' },
+        { id: 2, codigo: 'PROD002', nombre: 'Aceite Vegetal 1L', precio: 12.50, stock: 80, categoria: 'abarrotes' },
+        { id: 3, codigo: 'PROD003', nombre: 'Coca Cola 2L', precio: 7.50, stock: 200, categoria: 'bebidas' },
+        { id: 4, codigo: 'PROD004', nombre: 'Leche Gloria 1L', precio: 5.20, stock: 120, categoria: 'lacteos' },
+        { id: 5, codigo: 'PROD005', nombre: 'Detergente Ace 1kg', precio: 15.80, stock: 60, categoria: 'limpieza' },
+        { id: 6, codigo: 'PROD006', nombre: 'Papas Lays 150g', precio: 3.50, stock: 180, categoria: 'snacks' },
+        { id: 7, codigo: 'PROD007', nombre: 'Azúcar Rubia 1kg', precio: 3.80, stock: 100, categoria: 'abarrotes' },
+        { id: 8, codigo: 'PROD008', nombre: 'Fideo Don Vittorio 1kg', precio: 4.20, stock: 90, categoria: 'abarrotes' }
+      ];
+      
+      const categoria = $('#categoria_filtro').val();
+      const filtrados = productos.filter(p => {
+        const matchTermino = p.nombre.toLowerCase().includes(termino) || 
+                            p.codigo.toLowerCase().includes(termino);
+        const matchCategoria = !categoria || p.categoria === categoria;
+        return matchTermino && matchCategoria;
+      });
+      
+      if (filtrados.length > 0) {
+        let html = '';
+        filtrados.forEach(p => {
+          html += `
+            <div class="producto-card" onclick="agregarProducto(${p.id})">
+              <div class="producto-nombre">${p.nombre}</div>
+              <div class="producto-codigo">${p.codigo}</div>
+              <div class="producto-precio">S/ ${p.precio.toFixed(2)}</div>
+              <div class="producto-stock">
+                ${p.stock > 0 ? `<span class="badge badge-success">Stock: ${p.stock}</span>` : '<span class="badge badge-danger">Sin stock</span>'}
+              </div>
+            </div>
+          `;
+        });
+        $('#resultadosBusqueda').html(html).fadeIn(200);
+      } else {
+        $('#resultadosBusqueda').html('<p class="text-center text-muted" style="padding: 20px;">No se encontraron productos</p>').fadeIn(200);
+      }
+    }
+    
+    function filtrarPorCategoria() {
+      buscarProducto();
+    }
+    
+    function agregarProducto(id) {
+      // Simulación de datos del producto
+      const productos = {
+        1: { codigo: 'PROD001', nombre: 'Arroz Extra 1kg', precio: 4.50, stock: 150 },
+        2: { codigo: 'PROD002', nombre: 'Aceite Vegetal 1L', precio: 12.50, stock: 80 },
+        3: { codigo: 'PROD003', nombre: 'Coca Cola 2L', precio: 7.50, stock: 200 },
+        4: { codigo: 'PROD004', nombre: 'Leche Gloria 1L', precio: 5.20, stock: 120 },
+        5: { codigo: 'PROD005', nombre: 'Detergente Ace 1kg', precio: 15.80, stock: 60 },
+        6: { codigo: 'PROD006', nombre: 'Papas Lays 150g', precio: 3.50, stock: 180 },
+        7: { codigo: 'PROD007', nombre: 'Azúcar Rubia 1kg', precio: 3.80, stock: 100 },
+        8: { codigo: 'PROD008', nombre: 'Fideo Don Vittorio 1kg', precio: 4.20, stock: 90 }
+      };
+      
+      const producto = productos[id];
+      
+      // Verificar si ya está agregado
+      const existe = itemsCotizacion.find(item => item.id === id);
+      if (existe) {
+        Notifications.show('El producto ya está agregado', 'warning');
+        return;
+      }
+      
+      contadorItems++;
+      
+      const item = {
+        numero: contadorItems,
+        id: id,
+        codigo: producto.codigo,
+        nombre: producto.nombre,
+        cantidad: 1,
+        precio: producto.precio,
+        descuento: 0,
+        subtotal: producto.precio,
+        stock: producto.stock
+      };
+      
+      itemsCotizacion.push(item);
+      renderizarItems();
+      calcularTotales();
+      
+      Notifications.show('Producto agregado correctamente', 'success');
+      $('#buscar_producto').val('');
+      $('#resultadosBusqueda').fadeOut(200);
+    }
+    
+    function renderizarItems() {
+      if (itemsCotizacion.length === 0) {
+        $('#detalleItems').html(`
+          <tr class="empty-state">
+            <td colspan="8" class="text-center text-muted">
+              <div style="padding: 40px 20px;">
+                <div style="font-size: 48px; margin-bottom: 10px;">📦</div>
+                <p>No hay productos agregados</p>
+                <p class="text-sm">Busque y seleccione productos para agregar a la cotización</p>
+              </div>
+            </td>
+          </tr>
+        `);
+        return;
+      }
+      
+      let html = '';
+      itemsCotizacion.forEach(item => {
+        html += `
+          <tr>
+            <td>${item.numero}</td>
+            <td><strong>${item.codigo}</strong></td>
+            <td>${item.nombre}</td>
+            <td>
+              <input 
+                type="number" 
+                value="${item.cantidad}" 
+                min="1" 
+                max="${item.stock}"
+                onchange="actualizarCantidad(${item.id}, this.value)"
+              />
+            </td>
+            <td>S/ ${item.precio.toFixed(2)}</td>
+            <td>
+              <input 
+                type="number" 
+                value="${item.descuento}" 
+                min="0" 
+                max="100"
+                step="0.01"
+                onchange="actualizarDescuento(${item.id}, this.value)"
+              />
+            </td>
+            <td><strong>S/ ${item.subtotal.toFixed(2)}</strong></td>
+            <td>
+              <button class="btn btn-sm btn-danger" onclick="eliminarItem(${item.id})" title="Eliminar">
+                ✕
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+      
+      $('#detalleItems').html(html);
+    }
+    
+    function actualizarCantidad(id, cantidad) {
+      const item = itemsCotizacion.find(i => i.id === id);
+      if (item) {
+        cantidad = parseInt(cantidad);
+        if (cantidad > item.stock) {
+          Notifications.show(`Stock máximo disponible: ${item.stock}`, 'warning');
+          cantidad = item.stock;
+        }
+        item.cantidad = cantidad;
+        item.subtotal = (item.precio * item.cantidad) * (1 - item.descuento / 100);
+        renderizarItems();
+        calcularTotales();
+      }
+    }
+    
+    function actualizarDescuento(id, descuento) {
+      const item = itemsCotizacion.find(i => i.id === id);
+      if (item) {
+        descuento = parseFloat(descuento);
+        if (descuento > 100) descuento = 100;
+        if (descuento < 0) descuento = 0;
+        item.descuento = descuento;
+        item.subtotal = (item.precio * item.cantidad) * (1 - item.descuento / 100);
+        renderizarItems();
+        calcularTotales();
+      }
+    }
+    
+    function eliminarItem(id) {
+      if (confirm('¿Desea eliminar este producto?')) {
+        itemsCotizacion = itemsCotizacion.filter(i => i.id !== id);
+        renderizarItems();
+        calcularTotales();
+        Notifications.show('Producto eliminado', 'info');
+      }
+    }
+    
+    function calcularTotales() {
+      let subtotal = 0;
+      let totalDescuento = 0;
+      
+      itemsCotizacion.forEach(item => {
+        const subtotalSinDesc = item.precio * item.cantidad;
+        const descuentoMonto = subtotalSinDesc * (item.descuento / 100);
+        subtotal += subtotalSinDesc;
+        totalDescuento += descuentoMonto;
+      });
+      
+      const subtotalConDesc = subtotal - totalDescuento;
+      const igv = subtotalConDesc * 0.18;
+      const total = subtotalConDesc + igv;
+      
+      $('#subtotal').text(`S/ ${subtotal.toFixed(2)}`);
+      $('#descuento').text(`S/ ${totalDescuento.toFixed(2)}`);
+      $('#igv').text(`S/ ${igv.toFixed(2)}`);
+      $('#total').text(`S/ ${total.toFixed(2)}`);
+    }
+    
+    function nuevoCliente() {
+      $('#modalNuevoCliente').fadeIn(200);
+    }
+    
+    function cerrarModalCliente() {
+      $('#modalNuevoCliente').fadeOut(200);
+      $('#formNuevoCliente')[0].reset();
+    }
+    
+    $('#formNuevoCliente').on('submit', function(e) {
+      e.preventDefault();
+      
+      Notifications.show('Guardando cliente...', 'info');
+      
+      setTimeout(() => {
+        Notifications.show('Cliente creado exitosamente', 'success');
+        cerrarModalCliente();
+        
+        // Agregar el nuevo cliente al select
+        const nombre = $('#nombre_nuevo').val();
+        const documento = $('#num_doc_nuevo').val();
+        $('#cliente').append(`<option value="999" selected>${nombre} - ${$('#tipo_doc_nuevo').val().toUpperCase()}: ${documento}</option>`);
+        cargarInfoCliente();
+      }, 1500);
+    });
+    
+    function vistaPrevia() {
+      if (itemsCotizacion.length === 0) {
+        Notifications.show('Agregue al menos un producto', 'warning');
+        return;
+      }
+      
+      if (!$('#cliente').val()) {
+        Notifications.show('Seleccione un cliente', 'warning');
+        return;
+      }
+      
+      Notifications.show('Generando vista previa...', 'info');
+      
+      setTimeout(() => {
+        // Aquí se abriría una ventana con el PDF de vista previa
+        window.open('cotizaciones-detalle.html?id=COT-00157&preview=1', '_blank');
+      }, 1000);
+    }
+    
+    function guardarCotizacion() {
+      if (!validarCotizacion()) return;
+      
+      Notifications.show('Guardando cotización...', 'info');
+      
+      const dataCotizacion = {
+        cliente: $('#cliente').val(),
+        fecha_emision: $('#fecha_emision').val(),
+        fecha_vencimiento: $('#fecha_vencimiento').val(),
+        items: itemsCotizacion,
+        observaciones: $('#observaciones').val(),
+        notas_adicionales: $('#notas_adicionales').val(),
+        forma_pago: $('#forma_pago').val(),
+        tiempo_entrega: $('#tiempo_entrega').val(),
+        lugar_entrega: $('#lugar_entrega').val(),
+        garantia: $('#garantia').val(),
+        terminos_condiciones: $('#terminos_condiciones').val()
+      };
+      
+      console.log('Datos a guardar:', dataCotizacion);
+      
+      setTimeout(() => {
+        Notifications.show('Cotización guardada exitosamente', 'success');
+        setTimeout(() => {
+          window.location.href = 'cotizaciones.html';
+        }, 1500);
+      }, 2000);
+    }
+    
+    function guardarYEnviar() {
+      if (!validarCotizacion()) return;
+      
+      Notifications.show('Guardando y enviando cotización...', 'info');
+      
+      setTimeout(() => {
+        Notifications.show('Cotización guardada y enviada al cliente', 'success');
+        setTimeout(() => {
+          window.location.href = 'cotizaciones.html';
+        }, 1500);
+      }, 2000);
+    }
+    
+    function validarCotizacion() {
+      if (!$('#cliente').val()) {
+        Notifications.show('Seleccione un cliente', 'warning');
+        $('#cliente').focus();
+        return false;
+      }
+      
+      if (itemsCotizacion.length === 0) {
+        Notifications.show('Agregue al menos un producto', 'warning');
+        $('#buscar_producto').focus();
+        return false;
+      }
+      
+      if (!$('#fecha_emision').val()) {
+        Notifications.show('Ingrese la fecha de emisión', 'warning');
+        $('#fecha_emision').focus();
+        return false;
+      }
+      
+      return true;
+    }
+    
+    function cancelar() {
+      if (itemsCotizacion.length > 0) {
+        if (confirm('¿Está seguro de cancelar? Se perderán todos los datos ingresados.')) {
+          window.location.href = 'cotizaciones.html';
+        }
+      } else {
+        window.location.href = 'cotizaciones.html';
+      }
+    }
+    
+    function cargarCotizacion(id) {
+      Notifications.show(`Cargando cotización ${id}...`, 'info');
+      // Aquí iría la carga desde la API
+    }
+    
+    function duplicarCotizacionExistente(id) {
+      Notifications.show(`Duplicando cotización ${id}...`, 'info');
+      // Aquí iría la carga y duplicación
+    }
   </script>
 </body>
 </html>

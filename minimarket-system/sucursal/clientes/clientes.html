@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sucursal - Clientes</title>
+  <title>Sucursal - Gestión de Clientes</title>
   <link rel="stylesheet" href="../assets/css/variables.css" />
   <link rel="stylesheet" href="../assets/css/layout.css" />
   <link rel="stylesheet" href="../assets/css/components.css" />
@@ -12,30 +12,961 @@
   <script src="/minimarket-system/shared/js/utils.js"></script>
   <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="/minimarket-system/shared/js/notifications.js"></script>
+  <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
   <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/forms.js"></script>
 </head>
-<body class="page">
+<body class="page clientes-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Clientes</h1>
-      <div class="card">
-        <div class="card-header">Registrar Cliente</div>
+    <div class="content">
+      <div class="page-header mb-4">
+        <div>
+          <h1 class="text-xl fw-600">Gestión de Clientes</h1>
+          <p class="text-muted text-sm">Administración de la base de clientes y análisis de comportamiento</p>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="nuevoCliente()">
+            Nuevo Cliente
+          </button>
+        </div>
+      </div>
+
+      <!-- Estadísticas de Clientes -->
+      <div class="stats-grid mb-4">
+        <div class="stat-card">
+          <div class="stat-icon bg-primary">#</div>
+          <div class="stat-content">
+            <div class="stat-label">Total Clientes</div>
+            <div class="stat-value">1,847</div>
+            <div class="stat-change text-success">+125 este mes</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-success">%</div>
+          <div class="stat-content">
+            <div class="stat-label">Clientes Activos</div>
+            <div class="stat-value">1,245</div>
+            <div class="stat-change text-info">67.4% del total</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-warning">S/</div>
+          <div class="stat-content">
+            <div class="stat-label">Ticket Promedio</div>
+            <div class="stat-value">S/ 44.05</div>
+            <div class="stat-change text-success">+2.1% mejora</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-info">S/</div>
+          <div class="stat-content">
+            <div class="stat-label">Ventas Totales</div>
+            <div class="stat-value">S/ 125,450.80</div>
+            <div class="stat-change text-success">+15.3% vs anterior</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pestañas -->
+      <div class="tabs-container mb-4">
+        <div class="tabs">
+          <button class="tab active" onclick="cambiarTab('todos')">
+            Todos los Clientes
+          </button>
+          <button class="tab" onclick="cambiarTab('frecuentes')">
+            Clientes Frecuentes
+          </button>
+          <button class="tab" onclick="cambiarTab('vip')">
+            Clientes VIP
+          </button>
+          <button class="tab" onclick="cambiarTab('inactivos')">
+            Inactivos
+          </button>
+          <button class="tab" onclick="cambiarTab('deudores')">
+            Con Deuda
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Filtros de Búsqueda</h2>
+        </div>
         <div class="card-body">
-          <form id="formCliente" data-auto>
-            <div id="formInputs"></div>
-            <div class="flex justify-end mt-4">
-              <button class="btn" type="button" onclick="history.back()">Cancelar</button>
-              <button class="btn btn-primary" type="submit">Guardar</button>
+          <form id="formFiltros" class="form-row">
+            <div class="form-group">
+              <label for="buscar" class="form-label">Buscar</label>
+              <input 
+                type="text" 
+                id="buscar" 
+                class="input" 
+                placeholder="Nombre, DNI, teléfono..." 
+              />
+            </div>
+            <div class="form-group">
+              <label for="tipo_documento" class="form-label">Tipo Documento</label>
+              <select id="tipo_documento" class="input">
+                <option value="">Todos</option>
+                <option value="dni">DNI</option>
+                <option value="ruc">RUC</option>
+                <option value="ce">Carnet Extranjería</option>
+                <option value="pasaporte">Pasaporte</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="estado" class="form-label">Estado</label>
+              <select id="estado" class="input">
+                <option value="">Todos</option>
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+                <option value="vip">VIP</option>
+                <option value="deudor">Con Deuda</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ordenar" class="form-label">Ordenar por</label>
+              <select id="ordenar" class="input">
+                <option value="nombre">Nombre A-Z</option>
+                <option value="nombre_desc">Nombre Z-A</option>
+                <option value="compras">Más Compras</option>
+                <option value="monto">Mayor Monto</option>
+                <option value="reciente">Más Reciente</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary" style="margin-top: 27px;">
+                Buscar
+              </button>
+              <button type="button" class="btn btn-secondary" style="margin-top: 27px;" onclick="limpiarFiltros()">
+                Limpiar
+              </button>
             </div>
           </form>
         </div>
       </div>
+
+      <!-- Tabla de Clientes -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Lista de Clientes</h2>
+          <div>
+            <button class="btn btn-success btn-sm" onclick="exportarExcel()">
+              Exportar Excel
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="exportarPDF()">
+              Exportar PDF
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-actions mb-3">
+            <div class="table-info">
+              Mostrando <strong>20</strong> de <strong>1,847</strong> clientes
+            </div>
+            <div>
+              <select class="input" style="width: auto; display: inline-block;">
+                <option>20 por página</option>
+                <option>50 por página</option>
+                <option>100 por página</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table" id="tablaClientes">
+              <thead>
+                <tr>
+                  <th>
+                    <input type="checkbox" id="selectAll" onclick="seleccionarTodos()" />
+                  </th>
+                  <th>Código</th>
+                  <th>Cliente</th>
+                  <th>Documento</th>
+                  <th>Contacto</th>
+                  <th>Compras</th>
+                  <th>Total Gastado</th>
+                  <th>Última Compra</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="table-success">
+                  <td><input type="checkbox" class="select-cliente" /></td>
+                  <td><strong>CLI-001</strong></td>
+                  <td>
+                    <div>
+                      <strong>Juan Carlos Pérez García</strong>
+                      <div class="text-sm text-muted">Cliente VIP</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>DNI</div>
+                    <div><strong>45678912</strong></div>
+                  </td>
+                  <td>
+                    <div>987-654-321</div>
+                    <div class="text-sm text-muted">juan.perez@email.com</div>
+                  </td>
+                  <td><strong>145</strong> compras</td>
+                  <td><strong>S/ 8,450.00</strong></td>
+                  <td>
+                    <div>29/10/2025</div>
+                    <div class="text-sm text-muted">Hace 1 día</div>
+                  </td>
+                  <td><span class="badge badge-success">VIP</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verCliente('CLI-001')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="editarCliente('CLI-001')" title="Editar">
+                      Editar
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="nuevaVenta('CLI-001')" title="Nueva Venta">
+                      Vender
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="select-cliente" /></td>
+                  <td><strong>CLI-002</strong></td>
+                  <td>
+                    <div>
+                      <strong>María Luisa García Torres</strong>
+                      <div class="text-sm text-muted">Cliente Frecuente</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>DNI</div>
+                    <div><strong>78945612</strong></div>
+                  </td>
+                  <td>
+                    <div>965-874-123</div>
+                    <div class="text-sm text-muted">maria.garcia@email.com</div>
+                  </td>
+                  <td><strong>98</strong> compras</td>
+                  <td><strong>S/ 5,680.00</strong></td>
+                  <td>
+                    <div>28/10/2025</div>
+                    <div class="text-sm text-muted">Hace 2 días</div>
+                  </td>
+                  <td><span class="badge badge-primary">Activo</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verCliente('CLI-002')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="editarCliente('CLI-002')" title="Editar">
+                      Editar
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="nuevaVenta('CLI-002')" title="Nueva Venta">
+                      Vender
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="select-cliente" /></td>
+                  <td><strong>CLI-003</strong></td>
+                  <td>
+                    <div>
+                      <strong>Comercial López SAC</strong>
+                      <div class="text-sm text-muted">Cliente Corporativo</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>RUC</div>
+                    <div><strong>20456789123</strong></div>
+                  </td>
+                  <td>
+                    <div>945-123-789</div>
+                    <div class="text-sm text-muted">ventas@comerciallopez.com</div>
+                  </td>
+                  <td><strong>67</strong> compras</td>
+                  <td><strong>S/ 12,350.00</strong></td>
+                  <td>
+                    <div>25/10/2025</div>
+                    <div class="text-sm text-muted">Hace 5 días</div>
+                  </td>
+                  <td><span class="badge badge-success">VIP</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verCliente('CLI-003')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="editarCliente('CLI-003')" title="Editar">
+                      Editar
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="nuevaVenta('CLI-003')" title="Nueva Venta">
+                      Vender
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="select-cliente" /></td>
+                  <td><strong>CLI-004</strong></td>
+                  <td>
+                    <div>
+                      <strong>Roberto Carlos Sánchez Díaz</strong>
+                      <div class="text-sm text-muted">Cliente Regular</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>DNI</div>
+                    <div><strong>12345678</strong></div>
+                  </td>
+                  <td>
+                    <div>912-345-678</div>
+                    <div class="text-sm text-muted">roberto.sanchez@email.com</div>
+                  </td>
+                  <td><strong>54</strong> compras</td>
+                  <td><strong>S/ 3,280.00</strong></td>
+                  <td>
+                    <div>27/10/2025</div>
+                    <div class="text-sm text-muted">Hace 3 días</div>
+                  </td>
+                  <td><span class="badge badge-primary">Activo</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verCliente('CLI-004')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="editarCliente('CLI-004')" title="Editar">
+                      Editar
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="nuevaVenta('CLI-004')" title="Nueva Venta">
+                      Vender
+                    </button>
+                  </td>
+                </tr>
+                <tr class="table-danger">
+                  <td><input type="checkbox" class="select-cliente" /></td>
+                  <td><strong>CLI-005</strong></td>
+                  <td>
+                    <div>
+                      <strong>Ana María Rodríguez Vega</strong>
+                      <div class="text-sm text-muted">Cliente con Deuda</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>DNI</div>
+                    <div><strong>87654321</strong></div>
+                  </td>
+                  <td>
+                    <div>998-765-432</div>
+                    <div class="text-sm text-muted">ana.rodriguez@email.com</div>
+                  </td>
+                  <td><strong>42</strong> compras</td>
+                  <td><strong>S/ 2,850.00</strong></td>
+                  <td>
+                    <div>20/10/2025</div>
+                    <div class="text-sm text-muted">Hace 10 días</div>
+                  </td>
+                  <td>
+                    <span class="badge badge-danger">Deudor</span>
+                    <div class="text-sm text-danger">Debe: S/ 450.00</div>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verCliente('CLI-005')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="editarCliente('CLI-005')" title="Editar">
+                      Editar
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="cobrarDeuda('CLI-005')" title="Cobrar Deuda">
+                      Cobrar
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="select-cliente" /></td>
+                  <td><strong>CLI-006</strong></td>
+                  <td>
+                    <div>
+                      <strong>Carlos Alberto Mendoza Ruiz</strong>
+                      <div class="text-sm text-muted">Cliente Regular</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>DNI</div>
+                    <div><strong>45612378</strong></div>
+                  </td>
+                  <td>
+                    <div>923-456-789</div>
+                    <div class="text-sm text-muted">carlos.mendoza@email.com</div>
+                  </td>
+                  <td><strong>38</strong> compras</td>
+                  <td><strong>S/ 2,150.00</strong></td>
+                  <td>
+                    <div>26/10/2025</div>
+                    <div class="text-sm text-muted">Hace 4 días</div>
+                  </td>
+                  <td><span class="badge badge-primary">Activo</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verCliente('CLI-006')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="editarCliente('CLI-006')" title="Editar">
+                      Editar
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="nuevaVenta('CLI-006')" title="Nueva Venta">
+                      Vender
+                    </button>
+                  </td>
+                </tr>
+                <tr class="table-warning">
+                  <td><input type="checkbox" class="select-cliente" /></td>
+                  <td><strong>CLI-007</strong></td>
+                  <td>
+                    <div>
+                      <strong>Patricia Elena Flores Castro</strong>
+                      <div class="text-sm text-muted">Cliente Inactivo</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>DNI</div>
+                    <div><strong>65432178</strong></div>
+                  </td>
+                  <td>
+                    <div>934-567-890</div>
+                    <div class="text-sm text-muted">patricia.flores@email.com</div>
+                  </td>
+                  <td><strong>25</strong> compras</td>
+                  <td><strong>S/ 1,580.00</strong></td>
+                  <td>
+                    <div>15/08/2025</div>
+                    <div class="text-sm text-muted">Hace 75 días</div>
+                  </td>
+                  <td><span class="badge badge-warning">Inactivo</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verCliente('CLI-007')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="editarCliente('CLI-007')" title="Editar">
+                      Editar
+                    </button>
+                    <button class="btn btn-sm btn-info" onclick="reactivarCliente('CLI-007')" title="Reactivar">
+                      Reactivar
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="select-cliente" /></td>
+                  <td><strong>CLI-008</strong></td>
+                  <td>
+                    <div>
+                      <strong>Luis Fernando Torres Medina</strong>
+                      <div class="text-sm text-muted">Cliente Frecuente</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>DNI</div>
+                    <div><strong>78912345</strong></div>
+                  </td>
+                  <td>
+                    <div>956-789-123</div>
+                    <div class="text-sm text-muted">luis.torres@email.com</div>
+                  </td>
+                  <td><strong>72</strong> compras</td>
+                  <td><strong>S/ 4,120.00</strong></td>
+                  <td>
+                    <div>29/10/2025</div>
+                    <div class="text-sm text-muted">Hoy</div>
+                  </td>
+                  <td><span class="badge badge-primary">Activo</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verCliente('CLI-008')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="editarCliente('CLI-008')" title="Editar">
+                      Editar
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="nuevaVenta('CLI-008')" title="Nueva Venta">
+                      Vender
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div class="pagination">
+            <button class="pagination-btn" disabled>Anterior</button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn">2</button>
+            <button class="pagination-btn">3</button>
+            <button class="pagination-btn">4</button>
+            <button class="pagination-btn">...</button>
+            <button class="pagination-btn">93</button>
+            <button class="pagination-btn">Siguiente</button>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
-  <script> Utils.loadComponent('#formInputs', '../../shared/components/form-inputs.html'); </script>
+
+  <!-- Modal de Nuevo/Editar Cliente -->
+  <div id="modalCliente" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="text-lg fw-600" id="tituloModal">Nuevo Cliente</h2>
+        <button class="modal-close" onclick="cerrarModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="formCliente">
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="tipo_persona" class="form-label required">Tipo de Persona</label>
+              <select id="tipo_persona" class="input" required onchange="cambiarTipoPersona()">
+                <option value="">Seleccionar</option>
+                <option value="natural">Persona Natural</option>
+                <option value="juridica">Persona Jurídica</option>
+              </select>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="tipo_doc" class="form-label required">Tipo de Documento</label>
+              <select id="tipo_doc" class="input" required>
+                <option value="">Seleccionar</option>
+                <option value="dni">DNI</option>
+                <option value="ruc">RUC</option>
+                <option value="ce">Carnet de Extranjería</option>
+                <option value="pasaporte">Pasaporte</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="numero_doc" class="form-label required">Número de Documento</label>
+              <div style="display: flex; gap: 10px;">
+                <input 
+                  type="text" 
+                  id="numero_doc" 
+                  class="input" 
+                  required 
+                  placeholder="Ej: 12345678"
+                />
+                <button type="button" class="btn btn-secondary" onclick="buscarDocumento()">
+                  Buscar
+                </button>
+              </div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="nombre_completo" class="form-label required">Nombre / Razón Social</label>
+              <input 
+                type="text" 
+                id="nombre_completo" 
+                class="input" 
+                required 
+                placeholder="Nombre completo o razón social"
+              />
+            </div>
+          </div>
+
+          <div class="form-row" id="camposPersonaNatural">
+            <div class="form-group col-md-6">
+              <label for="apellido_paterno" class="form-label">Apellido Paterno</label>
+              <input 
+                type="text" 
+                id="apellido_paterno" 
+                class="input" 
+                placeholder="Apellido paterno"
+              />
+            </div>
+            <div class="form-group col-md-6">
+              <label for="apellido_materno" class="form-label">Apellido Materno</label>
+              <input 
+                type="text" 
+                id="apellido_materno" 
+                class="input" 
+                placeholder="Apellido materno"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="telefono" class="form-label">Teléfono</label>
+              <input 
+                type="tel" 
+                id="telefono" 
+                class="input" 
+                placeholder="987-654-321"
+              />
+            </div>
+            <div class="form-group col-md-6">
+              <label for="email" class="form-label">Email</label>
+              <input 
+                type="email" 
+                id="email" 
+                class="input" 
+                placeholder="cliente@email.com"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="direccion" class="form-label">Dirección</label>
+            <input 
+              type="text" 
+              id="direccion" 
+              class="input" 
+              placeholder="Dirección completa"
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="departamento" class="form-label">Departamento</label>
+              <select id="departamento" class="input">
+                <option value="">Seleccionar</option>
+                <option value="Lima">Lima</option>
+                <option value="Arequipa">Arequipa</option>
+                <option value="Cusco">Cusco</option>
+                <option value="Piura">Piura</option>
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="provincia" class="form-label">Provincia</label>
+              <select id="provincia" class="input">
+                <option value="">Seleccionar</option>
+                <option value="Lima">Lima</option>
+                <option value="Callao">Callao</option>
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="distrito" class="form-label">Distrito</label>
+              <select id="distrito" class="input">
+                <option value="">Seleccionar</option>
+                <option value="San Isidro">San Isidro</option>
+                <option value="Miraflores">Miraflores</option>
+                <option value="San Miguel">San Miguel</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="limite_credito" class="form-label">Límite de Crédito</label>
+              <input 
+                type="number" 
+                id="limite_credito" 
+                class="input" 
+                step="0.01"
+                value="0.00"
+                placeholder="0.00"
+              />
+            </div>
+            <div class="form-group col-md-6">
+              <label for="estado_cliente" class="form-label">Estado</label>
+              <select id="estado_cliente" class="input">
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="observaciones" class="form-label">Observaciones</label>
+            <textarea 
+              id="observaciones" 
+              class="input" 
+              rows="3"
+              placeholder="Observaciones adicionales sobre el cliente"
+            ></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModal()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Guardar Cliente
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Detalle del Cliente -->
+  <div id="modalDetalle" class="modal">
+    <div class="modal-content" style="max-width: 1000px;">
+      <div class="modal-header">
+        <h2 class="text-lg fw-600">Detalle del Cliente</h2>
+        <button class="modal-close" onclick="cerrarModalDetalle()">&times;</button>
+      </div>
+      <div class="modal-body" id="detalleContent">
+        <!-- Se carga dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let tabActual = 'todos';
+    
+    $(function(){ 
+      if (!Auth.requireRole(['sucursal', 'admin', 'cajero'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
+      
+      cargarClientes();
+    });
+    
+    function cambiarTab(tab) {
+      tabActual = tab;
+      $('.tab').removeClass('active');
+      $(event.target).addClass('active');
+      cargarClientes();
+    }
+    
+    function cargarClientes() {
+      Notifications.show(`Cargando clientes: ${tabActual}`, 'info');
+      // Aquí iría la llamada a la API
+    }
+    
+    $('#formFiltros').on('submit', function(e) {
+      e.preventDefault();
+      Notifications.show('Aplicando filtros...', 'info');
+      cargarClientes();
+    });
+    
+    function limpiarFiltros() {
+      $('#formFiltros')[0].reset();
+      cargarClientes();
+    }
+    
+    function nuevoCliente() {
+      $('#tituloModal').text('Nuevo Cliente');
+      $('#formCliente')[0].reset();
+      $('#modalCliente').fadeIn(200);
+    }
+    
+    function editarCliente(id) {
+      $('#tituloModal').text('Editar Cliente');
+      Notifications.show(`Cargando datos del cliente ${id}...`, 'info');
+      // Cargar datos del cliente
+      $('#modalCliente').fadeIn(200);
+    }
+    
+    function verCliente(id) {
+      Notifications.show(`Cargando detalle del cliente ${id}...`, 'info');
+      
+      $('#detalleContent').html(`
+        <div class="form-row mb-4">
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="text-md fw-600">Información del Cliente</h3>
+              </div>
+              <div class="card-body">
+                <div class="form-row">
+                  <div class="col-md-6">
+                    <p><strong>Código:</strong> ${id}</p>
+                    <p><strong>Nombre:</strong> Juan Carlos Pérez García</p>
+                    <p><strong>Tipo Documento:</strong> DNI</p>
+                    <p><strong>Número:</strong> 45678912</p>
+                    <p><strong>Teléfono:</strong> 987-654-321</p>
+                    <p><strong>Email:</strong> juan.perez@email.com</p>
+                  </div>
+                  <div class="col-md-6">
+                    <p><strong>Dirección:</strong> Av. Principal 123, San Isidro</p>
+                    <p><strong>Departamento:</strong> Lima</p>
+                    <p><strong>Provincia:</strong> Lima</p>
+                    <p><strong>Distrito:</strong> San Isidro</p>
+                    <p><strong>Estado:</strong> <span class="badge badge-success">VIP</span></p>
+                    <p><strong>Fecha Registro:</strong> 15/03/2024</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="text-md fw-600">Estadísticas</h3>
+              </div>
+              <div class="card-body">
+                <div class="stat-card mb-3">
+                  <div class="stat-label">Total Compras</div>
+                  <div class="stat-value text-primary">145</div>
+                </div>
+                <div class="stat-card mb-3">
+                  <div class="stat-label">Total Gastado</div>
+                  <div class="stat-value text-success">S/ 8,450.00</div>
+                </div>
+                <div class="stat-card mb-3">
+                  <div class="stat-label">Ticket Promedio</div>
+                  <div class="stat-value text-info">S/ 58.28</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Última Compra</div>
+                  <div class="stat-value text-sm">29/10/2025</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header">
+            <h3 class="text-md fw-600">Historial de Compras</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>N° Venta</th>
+                    <th>Productos</th>
+                    <th>Total</th>
+                    <th>Método Pago</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>29/10/2025 14:30</td>
+                    <td><strong>V-00145</strong></td>
+                    <td>5 productos</td>
+                    <td><strong>S/ 85.50</strong></td>
+                    <td>Efectivo</td>
+                    <td><span class="badge badge-success">Pagado</span></td>
+                  </tr>
+                  <tr>
+                    <td>25/10/2025 10:15</td>
+                    <td><strong>V-00128</strong></td>
+                    <td>8 productos</td>
+                    <td><strong>S/ 125.00</strong></td>
+                    <td>Tarjeta</td>
+                    <td><span class="badge badge-success">Pagado</span></td>
+                  </tr>
+                  <tr>
+                    <td>20/10/2025 16:45</td>
+                    <td><strong>V-00098</strong></td>
+                    <td>3 productos</td>
+                    <td><strong>S/ 45.00</strong></td>
+                    <td>Efectivo</td>
+                    <td><span class="badge badge-success">Pagado</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" onclick="cerrarModalDetalle()">Cerrar</button>
+          <button class="btn btn-warning" onclick="editarCliente('${id}')">Editar Cliente</button>
+          <button class="btn btn-primary" onclick="nuevaVenta('${id}')">Nueva Venta</button>
+        </div>
+      `);
+      
+      $('#modalDetalle').fadeIn(200);
+    }
+    
+    function cerrarModal() {
+      $('#modalCliente').fadeOut(200);
+    }
+    
+    function cerrarModalDetalle() {
+      $('#modalDetalle').fadeOut(200);
+    }
+    
+    function cambiarTipoPersona() {
+      const tipo = $('#tipo_persona').val();
+      if (tipo === 'natural') {
+        $('#camposPersonaNatural').show();
+        $('#tipo_doc').val('dni');
+      } else if (tipo === 'juridica') {
+        $('#camposPersonaNatural').hide();
+        $('#tipo_doc').val('ruc');
+      }
+    }
+    
+    function buscarDocumento() {
+      const tipoDoc = $('#tipo_doc').val();
+      const numeroDoc = $('#numero_doc').val();
+      
+      if (!tipoDoc || !numeroDoc) {
+        Notifications.show('Ingrese el tipo y número de documento', 'warning');
+        return;
+      }
+      
+      Notifications.show('Buscando en RENIEC/SUNAT...', 'info');
+      
+      setTimeout(() => {
+        if (tipoDoc === 'dni') {
+          $('#nombre_completo').val('Juan Carlos');
+          $('#apellido_paterno').val('Pérez');
+          $('#apellido_materno').val('García');
+          Notifications.show('Datos encontrados en RENIEC', 'success');
+        } else if (tipoDoc === 'ruc') {
+          $('#nombre_completo').val('Comercial López SAC');
+          Notifications.show('Datos encontrados en SUNAT', 'success');
+        }
+      }, 1500);
+    }
+    
+    $('#formCliente').on('submit', function(e) {
+      e.preventDefault();
+      Notifications.show('Guardando cliente...', 'info');
+      
+      setTimeout(() => {
+        Notifications.show('Cliente guardado exitosamente', 'success');
+        cerrarModal();
+        cargarClientes();
+      }, 1500);
+    });
+    
+    function nuevaVenta(id) {
+      Notifications.show(`Iniciando nueva venta para cliente ${id}...`, 'success');
+      setTimeout(() => {
+        window.location.href = '../ventas/ventas-nueva.html?cliente=' + id;
+      }, 1000);
+    }
+    
+    function cobrarDeuda(id) {
+      Notifications.show(`Abriendo módulo de cobranza para ${id}...`, 'info');
+      // Implementar módulo de cobranza
+    }
+    
+    function reactivarCliente(id) {
+      if (confirm(`¿Desea reactivar al cliente ${id}?`)) {
+        Notifications.show('Reactivando cliente...', 'success');
+        setTimeout(() => {
+          Notifications.show('Cliente reactivado exitosamente', 'success');
+          cargarClientes();
+        }, 1000);
+      }
+    }
+    
+    function seleccionarTodos() {
+      const checked = $('#selectAll').prop('checked');
+      $('.select-cliente').prop('checked', checked);
+    }
+    
+    function exportarExcel() {
+      Notifications.show('Exportando lista de clientes a Excel...', 'success');
+    }
+    
+    function exportarPDF() {
+      Notifications.show('Exportando lista de clientes a PDF...', 'success');
+    }
+    
+    // Búsqueda en tiempo real
+    $('#buscar').on('keyup', function() {
+      const value = $(this).val().toLowerCase();
+      $('#tablaClientes tbody tr').filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+      });
+    });
+  </script>
 </body>
 </html>

@@ -10,59 +10,1094 @@
   <link rel="stylesheet" href="../assets/css/pages.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="/minimarket-system/shared/js/utils.js"></script>
+  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="/minimarket-system/shared/js/notifications.js"></script>
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
-  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="../assets/js/main.js"></script>
 </head>
-<body class="page clientes-page">
+<body class="page clientes-crear-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Crear Cliente</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="clientes-editar.html">Editar Cliente</a>
-        <a class="btn" href="creditos.html">Créditos</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <div>
+          <h1 class="text-xl fw-600">Crear Nuevo Cliente</h1>
+          <p class="text-muted text-sm">Complete los datos del nuevo cliente</p>
+        </div>
+        <div>
+          <button class="btn btn-secondary" onclick="cancelar()">
+            Cancelar
+          </button>
+          <button class="btn btn-success" onclick="guardarYNuevo()">
+            Guardar y Crear Otro
+          </button>
+          <button class="btn btn-primary" onclick="guardarCliente()">
+            Guardar Cliente
+          </button>
+        </div>
       </div>
-      <form id="formCliente" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
-        <div>
-          <label class="label" for="nombre">Nombre</label>
-          <input class="input" id="nombre" name="nombre" data-validate="required|min:3" />
+
+      <!-- Progreso del Formulario -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="progress-steps">
+            <div class="progress-step active" data-step="1">
+              <div class="progress-step-number">1</div>
+              <div class="progress-step-label">Datos Básicos</div>
+            </div>
+            <div class="progress-step" data-step="2">
+              <div class="progress-step-number">2</div>
+              <div class="progress-step-label">Contacto</div>
+            </div>
+            <div class="progress-step" data-step="3">
+              <div class="progress-step-number">3</div>
+              <div class="progress-step-label">Dirección</div>
+            </div>
+            <div class="progress-step" data-step="4">
+              <div class="progress-step-number">4</div>
+              <div class="progress-step-label">Comercial</div>
+            </div>
+          </div>
         </div>
-        <div>
-          <label class="label" for="email">Correo</label>
-          <input class="input" id="email" name="email" data-validate="required|email" />
+      </div>
+
+      <!-- Paso 1: Datos Básicos -->
+      <div class="form-section" id="paso1">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h2 class="text-lg fw-600">Paso 1: Datos Básicos</h2>
+          </div>
+          <div class="card-body">
+            <form id="formPaso1">
+              <div class="alert alert-info mb-4">
+                <strong>Consejo:</strong> Complete primero el tipo y número de documento, luego presione "Buscar" para autocompletar los datos desde RENIEC o SUNAT.
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="tipo_persona" class="form-label required">Tipo de Persona</label>
+                  <select id="tipo_persona" class="input" required onchange="cambiarTipoPersona()">
+                    <option value="">Seleccionar</option>
+                    <option value="natural">Persona Natural</option>
+                    <option value="juridica">Persona Jurídica</option>
+                  </select>
+                  <small class="text-muted">Seleccione si es persona natural (DNI) o jurídica (RUC)</small>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="codigo_cliente" class="form-label">Código de Cliente</label>
+                  <input 
+                    type="text" 
+                    id="codigo_cliente" 
+                    class="input" 
+                    placeholder="Se generará automáticamente"
+                    readonly
+                  />
+                  <small class="text-muted">Se asignará automáticamente al guardar</small>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="tipo_documento" class="form-label required">Tipo de Documento</label>
+                  <select id="tipo_documento" class="input" required onchange="validarTipoDocumento()">
+                    <option value="">Seleccionar</option>
+                    <option value="dni">DNI - Documento Nacional de Identidad</option>
+                    <option value="ruc">RUC - Registro Único de Contribuyentes</option>
+                    <option value="ce">CE - Carnet de Extranjería</option>
+                    <option value="pasaporte">Pasaporte</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="numero_documento" class="form-label required">Número de Documento</label>
+                  <div style="display: flex; gap: 10px;">
+                    <input 
+                      type="text" 
+                      id="numero_documento" 
+                      class="input" 
+                      required 
+                      placeholder="Ej: 12345678"
+                      maxlength="20"
+                    />
+                    <button type="button" class="btn btn-secondary" onclick="buscarDocumento()">
+                      Buscar
+                    </button>
+                  </div>
+                  <small class="text-muted" id="help_documento">DNI: 8 dígitos | RUC: 11 dígitos | CE: 9 dígitos</small>
+                </div>
+              </div>
+
+              <div id="loadingBusqueda" class="alert alert-info" style="display: none;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div class="spinner"></div>
+                  <span>Consultando datos en <span id="api_consultada">RENIEC</span>...</span>
+                </div>
+              </div>
+
+              <div class="form-row" id="camposPersonaNatural" style="display: none;">
+                <div class="form-group col-md-4">
+                  <label for="nombres" class="form-label required">Nombres</label>
+                  <input 
+                    type="text" 
+                    id="nombres" 
+                    class="input" 
+                    placeholder="Nombres completos"
+                  />
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="apellido_paterno" class="form-label required">Apellido Paterno</label>
+                  <input 
+                    type="text" 
+                    id="apellido_paterno" 
+                    class="input" 
+                    placeholder="Apellido paterno"
+                  />
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="apellido_materno" class="form-label required">Apellido Materno</label>
+                  <input 
+                    type="text" 
+                    id="apellido_materno" 
+                    class="input" 
+                    placeholder="Apellido materno"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row" id="camposPersonaJuridica" style="display: none;">
+                <div class="form-group col-md-6">
+                  <label for="razon_social" class="form-label required">Razón Social</label>
+                  <input 
+                    type="text" 
+                    id="razon_social" 
+                    class="input" 
+                    placeholder="Razón social completa"
+                  />
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="nombre_comercial" class="form-label">Nombre Comercial</label>
+                  <input 
+                    type="text" 
+                    id="nombre_comercial" 
+                    class="input" 
+                    placeholder="Nombre comercial (opcional)"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row" id="camposDatosPersonales" style="display: none;">
+                <div class="form-group col-md-4">
+                  <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                  <input 
+                    type="date" 
+                    id="fecha_nacimiento" 
+                    class="input" 
+                    max=""
+                  />
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="genero" class="form-label">Género</label>
+                  <select id="genero" class="input">
+                    <option value="">Seleccionar</option>
+                    <option value="masculino">Masculino</option>
+                    <option value="femenino">Femenino</option>
+                    <option value="otro">Otro</option>
+                    <option value="no_especifica">Prefiere no especificar</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="estado_civil" class="form-label">Estado Civil</label>
+                  <select id="estado_civil" class="input">
+                    <option value="">Seleccionar</option>
+                    <option value="soltero">Soltero(a)</option>
+                    <option value="casado">Casado(a)</option>
+                    <option value="divorciado">Divorciado(a)</option>
+                    <option value="viudo">Viudo(a)</option>
+                    <option value="conviviente">Conviviente</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="cancelar()">
+                  Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="siguientePaso(2)">
+                  Siguiente: Contacto
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div>
-          <label class="label" for="telefono">Teléfono</label>
-          <input class="input" id="telefono" name="telefono" data-validate="required|min:9" />
+      </div>
+
+      <!-- Paso 2: Información de Contacto -->
+      <div class="form-section" id="paso2" style="display: none;">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h2 class="text-lg fw-600">Paso 2: Información de Contacto</h2>
+          </div>
+          <div class="card-body">
+            <form id="formPaso2">
+              <div class="alert alert-warning mb-4">
+                <strong>Importante:</strong> Es recomendable registrar al menos un número de teléfono para contactar al cliente.
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="telefono_principal" class="form-label required">Teléfono Principal</label>
+                  <input 
+                    type="tel" 
+                    id="telefono_principal" 
+                    class="input" 
+                    required 
+                    placeholder="987654321"
+                    maxlength="9"
+                  />
+                  <small class="text-muted">Ingrese 9 dígitos sin espacios</small>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="telefono_secundario" class="form-label">Teléfono Secundario</label>
+                  <input 
+                    type="tel" 
+                    id="telefono_secundario" 
+                    class="input" 
+                    placeholder="945123789 (opcional)"
+                    maxlength="9"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="whatsapp" class="form-label">WhatsApp</label>
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                    <input 
+                      type="tel" 
+                      id="whatsapp" 
+                      class="input" 
+                      placeholder="987654321"
+                      maxlength="9"
+                    />
+                    <label style="margin: 0; white-space: nowrap;">
+                      <input type="checkbox" id="whatsapp_igual" onchange="copiarTelefonoWhatsapp()" />
+                      Igual al principal
+                    </label>
+                  </div>
+                  <small class="text-muted">Número de WhatsApp para contacto</small>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="email" class="form-label">Correo Electrónico</label>
+                  <input 
+                    type="email" 
+                    id="email" 
+                    class="input" 
+                    placeholder="cliente@email.com"
+                  />
+                  <small class="text-muted">Para enviar comprobantes y notificaciones</small>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="red_social" class="form-label">Red Social</label>
+                  <input 
+                    type="text" 
+                    id="red_social" 
+                    class="input" 
+                    placeholder="@usuario o link de perfil"
+                  />
+                  <small class="text-muted">Facebook, Instagram, etc.</small>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="sitio_web" class="form-label">Sitio Web</label>
+                  <input 
+                    type="url" 
+                    id="sitio_web" 
+                    class="input" 
+                    placeholder="https://www.ejemplo.com"
+                  />
+                  <small class="text-muted">Solo para clientes corporativos</small>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Preferencias de Contacto</label>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                  <label>
+                    <input type="checkbox" id="contacto_email" checked />
+                    Por Email
+                  </label>
+                  <label>
+                    <input type="checkbox" id="contacto_whatsapp" checked />
+                    Por WhatsApp
+                  </label>
+                  <label>
+                    <input type="checkbox" id="contacto_llamada" />
+                    Por Llamada
+                  </label>
+                  <label>
+                    <input type="checkbox" id="contacto_sms" />
+                    Por SMS
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="anteriorPaso(1)">
+                  Anterior
+                </button>
+                <button type="button" class="btn btn-primary" onclick="siguientePaso(3)">
+                  Siguiente: Dirección
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div>
-          <label class="label" for="direccion">Dirección</label>
-          <input class="input" id="direccion" name="direccion" data-validate="required|min:5" />
+      </div>
+
+      <!-- Paso 3: Dirección -->
+      <div class="form-section" id="paso3" style="display: none;">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h2 class="text-lg fw-600">Paso 3: Dirección</h2>
+          </div>
+          <div class="card-body">
+            <form id="formPaso3">
+              <div class="alert alert-info mb-4">
+                <strong>Opcional:</strong> La dirección es opcional pero recomendada para entregas a domicilio.
+              </div>
+
+              <div class="form-group">
+                <label for="direccion" class="form-label">Dirección Completa</label>
+                <input 
+                  type="text" 
+                  id="direccion" 
+                  class="input" 
+                  placeholder="Calle, número, urbanización, etc."
+                />
+                <small class="text-muted">Ej: Av. Principal 123, Urb. Los Jardines</small>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label for="departamento" class="form-label">Departamento</label>
+                  <select id="departamento" class="input" onchange="cargarProvincias()">
+                    <option value="">Seleccionar</option>
+                    <option value="Amazonas">Amazonas</option>
+                    <option value="Áncash">Áncash</option>
+                    <option value="Apurímac">Apurímac</option>
+                    <option value="Arequipa">Arequipa</option>
+                    <option value="Ayacucho">Ayacucho</option>
+                    <option value="Cajamarca">Cajamarca</option>
+                    <option value="Callao">Callao</option>
+                    <option value="Cusco">Cusco</option>
+                    <option value="Huancavelica">Huancavelica</option>
+                    <option value="Huánuco">Huánuco</option>
+                    <option value="Ica">Ica</option>
+                    <option value="Junín">Junín</option>
+                    <option value="La Libertad">La Libertad</option>
+                    <option value="Lambayeque">Lambayeque</option>
+                    <option value="Lima">Lima</option>
+                    <option value="Loreto">Loreto</option>
+                    <option value="Madre de Dios">Madre de Dios</option>
+                    <option value="Moquegua">Moquegua</option>
+                    <option value="Pasco">Pasco</option>
+                    <option value="Piura">Piura</option>
+                    <option value="Puno">Puno</option>
+                    <option value="San Martín">San Martín</option>
+                    <option value="Tacna">Tacna</option>
+                    <option value="Tumbes">Tumbes</option>
+                    <option value="Ucayali">Ucayali</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="provincia" class="form-label">Provincia</label>
+                  <select id="provincia" class="input" onchange="cargarDistritos()">
+                    <option value="">Seleccionar departamento primero</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="distrito" class="form-label">Distrito</label>
+                  <select id="distrito" class="input">
+                    <option value="">Seleccionar provincia primero</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-8">
+                  <label for="referencia" class="form-label">Referencia</label>
+                  <input 
+                    type="text" 
+                    id="referencia" 
+                    class="input" 
+                    placeholder="Punto de referencia para ubicar la dirección"
+                  />
+                  <small class="text-muted">Ej: Frente al parque, al costado de la farmacia, etc.</small>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="codigo_postal" class="form-label">Código Postal</label>
+                  <input 
+                    type="text" 
+                    id="codigo_postal" 
+                    class="input" 
+                    placeholder="15000"
+                    maxlength="5"
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="tipo_vivienda" class="form-label">Tipo de Vivienda</label>
+                <select id="tipo_vivienda" class="input">
+                  <option value="">Seleccionar</option>
+                  <option value="casa">Casa</option>
+                  <option value="departamento">Departamento</option>
+                  <option value="oficina">Oficina</option>
+                  <option value="local_comercial">Local Comercial</option>
+                  <option value="otros">Otros</option>
+                </select>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="anteriorPaso(2)">
+                  Anterior
+                </button>
+                <button type="button" class="btn btn-primary" onclick="siguientePaso(4)">
+                  Siguiente: Info. Comercial
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div class="col-span-2">
-          <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+
+      <!-- Paso 4: Información Comercial -->
+      <div class="form-section" id="paso4" style="display: none;">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h2 class="text-lg fw-600">Paso 4: Información Comercial</h2>
+          </div>
+          <div class="card-body">
+            <form id="formPaso4">
+              <div class="alert alert-success mb-4">
+                <strong>Último paso:</strong> Configure las condiciones comerciales del cliente.
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label for="tipo_cliente" class="form-label required">Tipo de Cliente</label>
+                  <select id="tipo_cliente" class="input" required>
+                    <option value="">Seleccionar</option>
+                    <option value="regular" selected>Regular</option>
+                    <option value="frecuente">Frecuente</option>
+                    <option value="vip">VIP</option>
+                    <option value="corporativo">Corporativo</option>
+                  </select>
+                  <small class="text-muted">Clasificación del cliente</small>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="categoria" class="form-label">Categoría</label>
+                  <select id="categoria" class="input">
+                    <option value="">Sin categoría</option>
+                    <option value="A">Categoría A</option>
+                    <option value="B">Categoría B</option>
+                    <option value="C">Categoría C</option>
+                  </select>
+                  <small class="text-muted">Para segmentación interna</small>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="vendedor_asignado" class="form-label">Vendedor Asignado</label>
+                  <select id="vendedor_asignado" class="input">
+                    <option value="">Sin asignar</option>
+                    <option value="1">Carlos Martínez</option>
+                    <option value="2">Ana García</option>
+                    <option value="3">Luis Torres</option>
+                    <option value="4">María López</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label for="limite_credito" class="form-label">Límite de Crédito (S/)</label>
+                  <input 
+                    type="number" 
+                    id="limite_credito" 
+                    class="input" 
+                    step="0.01"
+                    value="0.00"
+                    min="0"
+                    placeholder="0.00"
+                  />
+                  <small class="text-muted">Monto máximo de crédito</small>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="dias_credito" class="form-label">Días de Crédito</label>
+                  <input 
+                    type="number" 
+                    id="dias_credito" 
+                    class="input" 
+                    value="0"
+                    min="0"
+                    placeholder="0"
+                  />
+                  <small class="text-muted">Plazo para pagar</small>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="descuento_especial" class="form-label">Descuento Especial (%)</label>
+                  <input 
+                    type="number" 
+                    id="descuento_especial" 
+                    class="input" 
+                    step="0.01"
+                    value="0.00"
+                    min="0"
+                    max="100"
+                    placeholder="0.00"
+                  />
+                  <small class="text-muted">Descuento permanente</small>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="forma_pago_preferida" class="form-label">Forma de Pago Preferida</label>
+                  <select id="forma_pago_preferida" class="input">
+                    <option value="">Sin preferencia</option>
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                    <option value="transferencia">Transferencia Bancaria</option>
+                    <option value="yape">Yape/Plin</option>
+                    <option value="credito">Al Crédito</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="lista_precios" class="form-label">Lista de Precios</label>
+                  <select id="lista_precios" class="input">
+                    <option value="1">Lista General</option>
+                    <option value="2">Lista Mayorista</option>
+                    <option value="3">Lista Corporativa</option>
+                    <option value="4">Lista Especial</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Opciones del Cliente</label>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                  <label>
+                    <input type="checkbox" id="acepta_marketing" checked />
+                    Acepta recibir promociones y ofertas
+                  </label>
+                  <label>
+                    <input type="checkbox" id="permite_credito" />
+                    Permite ventas al crédito
+                  </label>
+                  <label>
+                    <input type="checkbox" id="cliente_corporativo" />
+                    Es cliente corporativo
+                  </label>
+                  <label>
+                    <input type="checkbox" id="requiere_factura" />
+                    Requiere factura siempre
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="observaciones" class="form-label">Observaciones</label>
+                <textarea 
+                  id="observaciones" 
+                  class="input" 
+                  rows="4"
+                  placeholder="Observaciones, notas o comentarios sobre el cliente"
+                ></textarea>
+                <small class="text-muted">Información adicional relevante</small>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="anteriorPaso(3)">
+                  Anterior
+                </button>
+                <button type="button" class="btn btn-primary" onclick="mostrarResumen()">
+                  Revisar Datos
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </form>
+      </div>
+
+      <!-- Resumen Final -->
+      <div class="form-section" id="resumen" style="display: none;">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h2 class="text-lg fw-600">Resumen de Datos</h2>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info mb-4">
+              <strong>Revisión Final:</strong> Verifique que todos los datos sean correctos antes de guardar.
+            </div>
+
+            <div id="resumenContent">
+              <!-- Se llenará dinámicamente -->
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="anteriorPaso(4)">
+                Volver a Editar
+              </button>
+              <button type="button" class="btn btn-success" onclick="guardarYNuevo()">
+                Guardar y Crear Otro
+              </button>
+              <button type="button" class="btn btn-primary" onclick="guardarCliente()">
+                Guardar Cliente
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
+  <style>
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin: 20px 0;
+    }
+
+    .progress-steps::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--color-border);
+      z-index: 0;
+    }
+
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      position: relative;
+      z-index: 1;
+      cursor: pointer;
+    }
+
+    .progress-step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      margin-bottom: 8px;
+      transition: all 0.3s;
+    }
+
+    .progress-step.active .progress-step-number {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+
+    .progress-step.completed .progress-step-number {
+      background: var(--color-success);
+      color: white;
+      border-color: var(--color-success);
+    }
+
+    .progress-step-label {
+      font-size: 0.875rem;
+      text-align: center;
+      color: var(--color-text-muted);
+    }
+
+    .progress-step.active .progress-step-label {
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
   <script>
-    $(function(){
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
-      $('#formCliente').on('submit', async function(e){
-        e.preventDefault();
-        const errs = Validation.validateForm($(this));
-        if (errs.length) { Notifications.show('Corrige los campos resaltados', 'warning'); return; }
-        const data = Object.fromEntries(new FormData(this).entries());
-        const res = await API.post('/clientes', data);
-        if (res.ok) { Notifications.show('Cliente creado', 'success'); }
-        else { Notifications.show('Error al crear cliente', 'danger'); }
+    let pasoActual = 1;
+    
+    $(function(){ 
+      if (!Auth.requireRole(['sucursal', 'admin', 'cajero'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
+      
+      // Establecer fecha máxima para fecha de nacimiento (18 años atrás)
+      const hoy = new Date();
+      const hace18 = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+      $('#fecha_nacimiento').attr('max', hace18.toISOString().split('T')[0]);
+    });
+    
+    function cambiarTipoPersona() {
+      const tipo = $('#tipo_persona').val();
+      
+      if (tipo === 'natural') {
+        $('#camposPersonaNatural').show();
+        $('#camposPersonaJuridica').hide();
+        $('#camposDatosPersonales').show();
+        $('#tipo_documento').val('dni');
+        $('#help_documento').text('DNI: 8 dígitos | CE: 9 dígitos | Pasaporte: hasta 20 caracteres');
+      } else if (tipo === 'juridica') {
+        $('#camposPersonaNatural').hide();
+        $('#camposPersonaJuridica').show();
+        $('#camposDatosPersonales').hide();
+        $('#tipo_documento').val('ruc');
+        $('#help_documento').text('RUC: 11 dígitos');
+      }
+      
+      validarTipoDocumento();
+    }
+    
+    function validarTipoDocumento() {
+      const tipoDoc = $('#tipo_documento').val();
+      let maxLength = 20;
+      
+      switch(tipoDoc) {
+        case 'dni':
+          maxLength = 8;
+          $('#help_documento').text('DNI: 8 dígitos');
+          break;
+        case 'ruc':
+          maxLength = 11;
+          $('#help_documento').text('RUC: 11 dígitos');
+          break;
+        case 'ce':
+          maxLength = 9;
+          $('#help_documento').text('Carnet de Extranjería: 9 dígitos');
+          break;
+        case 'pasaporte':
+          maxLength = 20;
+          $('#help_documento').text('Pasaporte: hasta 20 caracteres');
+          break;
+      }
+      
+      $('#numero_documento').attr('maxlength', maxLength);
+    }
+    
+    function buscarDocumento() {
+      const tipoDoc = $('#tipo_documento').val();
+      const numeroDoc = $('#numero_documento').val();
+      
+      if (!tipoDoc || !numeroDoc) {
+        Notifications.show('Seleccione el tipo de documento e ingrese el número', 'warning');
+        return;
+      }
+      
+      const api = tipoDoc === 'ruc' ? 'SUNAT' : 'RENIEC';
+      $('#api_consultada').text(api);
+      $('#loadingBusqueda').fadeIn(200);
+      
+      setTimeout(() => {
+        $('#loadingBusqueda').fadeOut(200);
+        
+        if (tipoDoc === 'dni') {
+          $('#nombres').val('Juan Carlos');
+          $('#apellido_paterno').val('Pérez');
+          $('#apellido_materno').val('García');
+          Notifications.show('Datos encontrados en RENIEC', 'success');
+        } else if (tipoDoc === 'ruc') {
+          $('#razon_social').val('Comercial López SAC');
+          $('#nombre_comercial').val('Comercial López');
+          Notifications.show('Datos encontrados en SUNAT', 'success');
+        } else {
+          Notifications.show('No se encontraron datos. Complete manualmente', 'info');
+        }
+      }, 2000);
+    }
+    
+    function copiarTelefonoWhatsapp() {
+      if ($('#whatsapp_igual').is(':checked')) {
+        $('#whatsapp').val($('#telefono_principal').val());
+      } else {
+        $('#whatsapp').val('');
+      }
+    }
+    
+    $('#telefono_principal').on('input', function() {
+      if ($('#whatsapp_igual').is(':checked')) {
+        $('#whatsapp').val($(this).val());
+      }
+    });
+    
+    function cargarProvincias() {
+      const departamento = $('#departamento').val();
+      $('#provincia').html('<option value="">Cargando...</option>');
+      
+      setTimeout(() => {
+        $('#provincia').html(`
+          <option value="">Seleccionar</option>
+          <option value="Lima">Lima</option>
+          <option value="Callao">Callao</option>
+        `);
+        $('#distrito').html('<option value="">Seleccionar provincia primero</option>');
+      }, 500);
+    }
+    
+    function cargarDistritos() {
+      const provincia = $('#provincia').val();
+      $('#distrito').html('<option value="">Cargando...</option>');
+      
+      setTimeout(() => {
+        $('#distrito').html(`
+          <option value="">Seleccionar</option>
+          <option value="San Isidro">San Isidro</option>
+          <option value="Miraflores">Miraflores</option>
+          <option value="San Miguel">San Miguel</option>
+          <option value="Surco">Surco</option>
+          <option value="La Molina">La Molina</option>
+          <option value="San Borja">San Borja</option>
+        `);
+      }, 500);
+    }
+    
+    function siguientePaso(paso) {
+      // Validar paso actual
+      const formularioActual = $(`#formPaso${pasoActual}`)[0];
+      if (formularioActual && !formularioActual.checkValidity()) {
+        formularioActual.reportValidity();
+        return;
+      }
+      
+      // Marcar paso como completado
+      $(`.progress-step[data-step="${pasoActual}"]`).addClass('completed').removeClass('active');
+      
+      // Ocultar paso actual
+      $(`#paso${pasoActual}`).fadeOut(200, function() {
+        pasoActual = paso;
+        
+        // Mostrar siguiente paso
+        $(`#paso${paso}`).fadeIn(200);
+        $(`.progress-step[data-step="${paso}"]`).addClass('active');
+        
+        // Scroll al inicio
+        window.scrollTo(0, 0);
       });
+    }
+    
+    function anteriorPaso(paso) {
+      $(`#paso${pasoActual}, #resumen`).fadeOut(200, function() {
+        pasoActual = paso;
+        $(`#paso${paso}`).fadeIn(200);
+        
+        $('.progress-step').removeClass('active');
+        $(`.progress-step[data-step="${paso}"]`).addClass('active');
+        
+        window.scrollTo(0, 0);
+      });
+    }
+    
+    function mostrarResumen() {
+      // Validar último paso
+      const formularioActual = $('#formPaso4')[0];
+      if (!formularioActual.checkValidity()) {
+        formularioActual.reportValidity();
+        return;
+      }
+      
+      // Marcar paso como completado
+      $('.progress-step[data-step="4"]').addClass('completed').removeClass('active');
+      
+      // Generar resumen
+      const tipoPersona = $('#tipo_persona option:selected').text();
+      const tipoDoc = $('#tipo_documento option:selected').text();
+      const nombreCompleto = $('#tipo_persona').val() === 'natural' 
+        ? `${$('#nombres').val()} ${$('#apellido_paterno').val()} ${$('#apellido_materno').val()}`
+        : $('#razon_social').val();
+      
+      const resumen = `
+        <div class="form-row">
+          <div class="col-md-6">
+            <div class="card mb-3">
+              <div class="card-header">
+                <h3 class="text-md fw-600">Datos Básicos</h3>
+              </div>
+              <div class="card-body">
+                <p><strong>Tipo:</strong> ${tipoPersona}</p>
+                <p><strong>Documento:</strong> ${tipoDoc}</p>
+                <p><strong>Número:</strong> ${$('#numero_documento').val()}</p>
+                <p><strong>Nombre:</strong> ${nombreCompleto}</p>
+                ${$('#fecha_nacimiento').val() ? `<p><strong>F. Nacimiento:</strong> ${$('#fecha_nacimiento').val()}</p>` : ''}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card mb-3">
+              <div class="card-header">
+                <h3 class="text-md fw-600">Contacto</h3>
+              </div>
+              <div class="card-body">
+                <p><strong>Teléfono Principal:</strong> ${$('#telefono_principal').val()}</p>
+                ${$('#telefono_secundario').val() ? `<p><strong>Teléfono Secundario:</strong> ${$('#telefono_secundario').val()}</p>` : ''}
+                ${$('#email').val() ? `<p><strong>Email:</strong> ${$('#email').val()}</p>` : ''}
+                ${$('#whatsapp').val() ? `<p><strong>WhatsApp:</strong> ${$('#whatsapp').val()}</p>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="col-md-6">
+            <div class="card mb-3">
+              <div class="card-header">
+                <h3 class="text-md fw-600">Dirección</h3>
+              </div>
+              <div class="card-body">
+                ${$('#direccion').val() ? `<p><strong>Dirección:</strong> ${$('#direccion').val()}</p>` : '<p class="text-muted">Sin dirección registrada</p>'}
+                ${$('#departamento').val() ? `<p><strong>Ubicación:</strong> ${$('#distrito').val()}, ${$('#provincia').val()}, ${$('#departamento').val()}</p>` : ''}
+                ${$('#referencia').val() ? `<p><strong>Referencia:</strong> ${$('#referencia').val()}</p>` : ''}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card mb-3">
+              <div class="card-header">
+                <h3 class="text-md fw-600">Información Comercial</h3>
+              </div>
+              <div class="card-body">
+                <p><strong>Tipo Cliente:</strong> ${$('#tipo_cliente option:selected').text()}</p>
+                <p><strong>Límite Crédito:</strong> S/ ${$('#limite_credito').val()}</p>
+                <p><strong>Días Crédito:</strong> ${$('#dias_credito').val()} días</p>
+                <p><strong>Descuento:</strong> ${$('#descuento_especial').val()}%</p>
+                <p><strong>Acepta Marketing:</strong> ${$('#acepta_marketing').is(':checked') ? 'Sí' : 'No'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      $('#resumenContent').html(resumen);
+      
+      $('#paso4').fadeOut(200, function() {
+        $('#resumen').fadeIn(200);
+        window.scrollTo(0, 0);
+      });
+    }
+    
+    function guardarCliente() {
+      const datosCliente = recopilarDatos();
+      
+      Notifications.show('Guardando cliente...', 'info');
+      console.log('Datos a guardar:', datosCliente);
+      
+      // Aquí iría la llamada a la API
+      setTimeout(() => {
+        Notifications.show('Cliente creado exitosamente', 'success');
+        setTimeout(() => {
+          window.location.href = 'clientes.html';
+        }, 1500);
+      }, 2000);
+    }
+    
+    function guardarYNuevo() {
+      const datosCliente = recopilarDatos();
+      
+      Notifications.show('Guardando cliente...', 'info');
+      console.log('Datos a guardar:', datosCliente);
+      
+      setTimeout(() => {
+        Notifications.show('Cliente creado. Preparando nuevo formulario...', 'success');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      }, 2000);
+    }
+    
+    function recopilarDatos() {
+      return {
+        tipo_persona: $('#tipo_persona').val(),
+        tipo_documento: $('#tipo_documento').val(),
+        numero_documento: $('#numero_documento').val(),
+        nombres: $('#nombres').val(),
+        apellido_paterno: $('#apellido_paterno').val(),
+        apellido_materno: $('#apellido_materno').val(),
+        razon_social: $('#razon_social').val(),
+        nombre_comercial: $('#nombre_comercial').val(),
+        fecha_nacimiento: $('#fecha_nacimiento').val(),
+        genero: $('#genero').val(),
+        estado_civil: $('#estado_civil').val(),
+        telefono_principal: $('#telefono_principal').val(),
+        telefono_secundario: $('#telefono_secundario').val(),
+        email: $('#email').val(),
+        whatsapp: $('#whatsapp').val(),
+        red_social: $('#red_social').val(),
+        sitio_web: $('#sitio_web').val(),
+        direccion: $('#direccion').val(),
+        departamento: $('#departamento').val(),
+        provincia: $('#provincia').val(),
+        distrito: $('#distrito').val(),
+        referencia: $('#referencia').val(),
+        codigo_postal: $('#codigo_postal').val(),
+        tipo_vivienda: $('#tipo_vivienda').val(),
+        tipo_cliente: $('#tipo_cliente').val(),
+        categoria: $('#categoria').val(),
+        vendedor_asignado: $('#vendedor_asignado').val(),
+        limite_credito: $('#limite_credito').val(),
+        dias_credito: $('#dias_credito').val(),
+        descuento_especial: $('#descuento_especial').val(),
+        forma_pago_preferida: $('#forma_pago_preferida').val(),
+        lista_precios: $('#lista_precios').val(),
+        acepta_marketing: $('#acepta_marketing').is(':checked'),
+        permite_credito: $('#permite_credito').is(':checked'),
+        cliente_corporativo: $('#cliente_corporativo').is(':checked'),
+        requiere_factura: $('#requiere_factura').is(':checked'),
+        observaciones: $('#observaciones').val()
+      };
+    }
+    
+    function cancelar() {
+      if (confirm('¿Está seguro de cancelar? Se perderán todos los datos ingresados.')) {
+        window.location.href = 'clientes.html';
+      }
+    }
+    
+    // Permitir navegación entre pasos haciendo clic en la barra de progreso
+    $('.progress-step').on('click', function() {
+      const paso = parseInt($(this).data('step'));
+      if (paso < pasoActual || $(this).hasClass('completed')) {
+        anteriorPaso(paso);
+      }
     });
   </script>
 </body>
