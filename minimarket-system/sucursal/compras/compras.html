@@ -14,28 +14,41 @@
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
   <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/tables.js"></script>
+  <script src="../assets/js/compras.js"></script>
 </head>
 <body class="page compras-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
   <main class="main">
     <div class="container">
-      <h1>Compras</h1>
-      <div class="actions mb-4">
-        <a class="btn btn-primary" href="compras-crear.html">Nueva compra</a>
-        <a class="btn" href="recepcion.html">Recepción</a>
+      <div class="flex justify-between items-center mb-4">
+        <h1>Órdenes de Compra</h1>
+        <div>
+          <a class="btn btn-primary" href="compras-crear.html">Nueva Orden de Compra</a>
+        </div>
       </div>
+
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="flex gap-3">
+            <select class="input" id="filtroEstado" style="width: 200px">
+              <option value="">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="recibida">Recibida</option>
+              <option value="parcial">Parcial</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div id="tableContainer"></div>
     </div>
   </main>
+  <div id="notificationsContainer"></div>
   <script>
-    $(function(){ 
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
-    });
-    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html');
+    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html')
+      .then(() => Compras.bindListado());
   </script>
 </body>
 </html>

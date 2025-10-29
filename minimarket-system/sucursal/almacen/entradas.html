@@ -14,6 +14,7 @@
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
   <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/forms.js"></script>
 </head>
 <body class="page almacen-page">
   <div id="navbar"></div>
@@ -46,17 +47,10 @@
   <script>
     $(function(){
       if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
-      $('#formEntrada').on('submit', async function(e){
-        e.preventDefault();
-        const errs = Validation.validateForm($(this));
-        if (errs.length) { Notifications.show('Revisa los campos del formulario', 'warning'); return; }
-        const data = Object.fromEntries(new FormData(this).entries());
-        const res = await API.post('/almacen/entradas', data);
-        if (res.ok) { Notifications.show('Entrada registrada', 'success'); location.href = 'almacen.html'; }
-        else { Notifications.show('Error al registrar entrada', 'danger'); }
-      });
+      // Forms.bindAuto maneja el submit
+      $('#formEntrada').attr('data-auto', 'true')
+        .attr('data-endpoint', '/api/almacen/entradas')
+        .attr('data-success-redirect', 'almacen.html');
     });
   </script>
 </body>

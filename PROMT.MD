@@ -98,14 +98,14 @@ minimarket-system/
 │   │   ├── productos.html
 │   │   ├── productos-crear.html
 │   │   ├── productos-editar.html
-│   │   ├── categorias.html
-│   │   └── proveedores.html
+│   │   └── categorias.html
 │   │
 │   ├── 📁 compras/
 │   │   ├── compras.html
 │   │   ├── compras-crear.html
 │   │   ├── compras-detalle.html
 │   │   └── recepcion.html
+│   │   └── proveedores.html
 │   │
 │   ├── 📁 almacen/
 │   │   ├── almacen.html

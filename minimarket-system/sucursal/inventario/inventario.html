@@ -15,6 +15,7 @@
   <script src="/minimarket-system/shared/js/auth.js"></script>
   <script src="../assets/js/main.js"></script>
   <script src="../assets/js/tables.js"></script>
+  <script src="../assets/js/inventario.js"></script>
 </head>
 <body class="page inventario-page">
   <div id="navbar"></div>
@@ -32,10 +33,9 @@
   <script>
     $(function(){ 
       if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
     });
-    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html');
+    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html')
+      .then(() => Inventario.bindListado());
   </script>
 </body>
 </html>

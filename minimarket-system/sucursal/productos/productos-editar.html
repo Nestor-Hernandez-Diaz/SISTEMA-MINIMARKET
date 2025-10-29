@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sucursal - Productos Editar</title>
+  <title>Sucursal - Editar Producto</title>
   <link rel="stylesheet" href="../assets/css/variables.css" />
   <link rel="stylesheet" href="../assets/css/layout.css" />
   <link rel="stylesheet" href="../assets/css/components.css" />
@@ -14,60 +14,118 @@
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
   <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/productos.js"></script>
 </head>
 <body class="page productos-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
   <main class="main">
     <div class="container">
-      <h1>Editar Producto</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="productos.html">Ver productos</a>
-        <a class="btn" href="categorias.html">Categorías</a>
-        <a class="btn" href="proveedores.html">Proveedores</a>
+      <div class="flex justify-between items-center mb-4">
+        <h1>Editar Producto</h1>
+        <div>
+          <a class="btn" href="productos.html">Volver al Listado</a>
+          <a class="btn" href="categorias.html">Categorías</a>
+          <a class="btn" href="proveedores.html">Proveedores</a>
+        </div>
       </div>
-      <form id="formProductoEditar" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
-        <div>
-          <label class="label" for="nombre">Nombre</label>
-          <input class="input" id="nombre" name="nombre" data-validate="required|min:3" />
+
+      <div class="card">
+        <div class="card-header">Información del Producto</div>
+        <div class="card-body">
+          <form id="formProducto">
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
+              <!-- Código -->
+              <div>
+                <label class="label" for="codigo">Código <span class="text-muted">(opcional)</span></label>
+                <input type="text" class="input" id="codigo" name="codigo" placeholder="SKU-001" />
+              </div>
+
+              <!-- Nombre -->
+              <div>
+                <label class="label" for="nombre">Nombre <span class="text-danger">*</span></label>
+                <input type="text" class="input" id="nombre" name="nombre" required placeholder="Ej: Leche Gloria" />
+              </div>
+
+              <!-- Descripción -->
+              <div style="grid-column: 1 / -1">
+                <label class="label" for="descripcion">Descripción</label>
+                <textarea class="input" id="descripcion" name="descripcion" rows="3" placeholder="Descripción detallada del producto"></textarea>
+              </div>
+
+              <!-- Categoría -->
+              <div>
+                <label class="label" for="categoria">Categoría</label>
+                <select class="input" id="categoria" name="categoria_id">
+                  <option value="">Seleccione...</option>
+                </select>
+              </div>
+
+              <!-- Proveedor -->
+              <div>
+                <label class="label" for="proveedor">Proveedor</label>
+                <select class="input" id="proveedor" name="proveedor_id">
+                  <option value="">Seleccione...</option>
+                </select>
+              </div>
+
+              <!-- Precio -->
+              <div>
+                <label class="label" for="precio">Precio de Venta <span class="text-danger">*</span></label>
+                <input type="number" class="input" id="precio" name="precio" step="0.01" min="0" required placeholder="0.00" />
+              </div>
+
+              <!-- Costo -->
+              <div>
+                <label class="label" for="costo">Costo <span class="text-muted">(opcional)</span></label>
+                <input type="number" class="input" id="costo" name="costo" step="0.01" min="0" placeholder="0.00" />
+              </div>
+
+              <!-- Stock -->
+              <div>
+                <label class="label" for="stock">Stock Actual</label>
+                <input type="number" class="input" id="stock" name="stock" min="0" value="0" />
+              </div>
+
+              <!-- Stock Mínimo -->
+              <div>
+                <label class="label" for="stock_minimo">Stock Mínimo</label>
+                <input type="number" class="input" id="stock_minimo" name="stock_minimo" min="0" value="0" />
+              </div>
+
+              <!-- Estado Activo -->
+              <div style="grid-column: 1 / -1">
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" id="activo" name="activo" checked />
+                  <span>Producto activo</span>
+                </label>
+              </div>
+
+              <!-- Botones -->
+              <div style="grid-column: 1 / -1" class="flex justify-end gap-2 mt-4">
+                <a href="productos.html" class="btn">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Actualizar Producto</button>
+              </div>
+            </div>
+          </form>
         </div>
-        <div>
-          <label class="label" for="precio">Precio</label>
-          <input class="input" id="precio" name="precio" data-validate="required|number" />
-        </div>
-        <div>
-          <label class="label" for="categoria">Categoría</label>
-          <input class="input" id="categoria" name="categoria" data-validate="required" />
-        </div>
-        <div>
-          <label class="label" for="proveedor">Proveedor</label>
-          <input class="input" id="proveedor" name="proveedor" data-validate="required" />
-        </div>
-        <div class="col-span-2">
-          <label class="label" for="descripcion">Descripción</label>
-          <textarea id="descripcion" name="descripcion" rows="3"></textarea>
-        </div>
-        <div class="col-span-2">
-          <button type="submit" class="btn btn-primary">Actualizar</button>
-          <a class="btn" href="productos.html">Cancelar</a>
-        </div>
-      </form>
+      </div>
     </div>
   </main>
+  <div id="notificationsContainer"></div>
   <script>
-    $(function(){
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
-      $('#formProductoEditar').on('submit', async function(e){
-        e.preventDefault();
-        const errs = Validation.validateForm($(this));
-        if (errs.length) { Notifications.show('Revisa los campos del formulario', 'warning'); return; }
-        const data = Object.fromEntries(new FormData(this).entries());
-        const res = await API.put('/productos/ID', data);
-        if (res.ok) { Notifications.show('Producto actualizado', 'success'); location.href = 'productos.html'; }
-        else { Notifications.show('Error al actualizar producto', 'danger'); }
-      });
+    $(function() {
+      // Obtener ID del query string
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('id');
+
+      if (!id) {
+        Notifications.show('ID de producto no especificado', 'danger');
+        setTimeout(() => { window.location.href = 'productos.html'; }, 1500);
+        return;
+      }
+
+      Productos.bindFormulario(Number(id));
     });
   </script>
 </body>
