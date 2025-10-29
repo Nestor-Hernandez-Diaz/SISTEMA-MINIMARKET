@@ -21,21 +21,59 @@
   <main class="main">
     <div class="container">
       <h1>Caja</h1>
+      
+      <!-- Resumen de caja -->
       <div class="resume mt-4">
         <div class="card content">
           <div class="text-muted">Saldo inicial</div>
-          <div class="mt-2">S/ 0.00</div>
+          <div class="mt-2">S/ 500.00</div>
         </div>
         <div class="card content">
           <div class="text-muted">Ingresos</div>
-          <div class="mt-2">S/ 0.00</div>
+          <div class="mt-2">S/ 2,450.80</div>
         </div>
         <div class="card content">
           <div class="text-muted">Egresos</div>
-          <div class="mt-2">S/ 0.00</div>
+          <div class="mt-2">S/ 180.50</div>
+        </div>
+        <div class="card content">
+          <div class="text-muted">Saldo actual</div>
+          <div class="mt-2 text-success">S/ 2,770.30</div>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="actions mt-4">
+        <a class="btn" href="apertura.html">Apertura</a>
+        <a class="btn" href="arqueo.html">Arqueo</a>
+        <a class="btn" href="cierre.html">Cierre</a>
+      </div>
+
+      <!-- Estado de caja -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <h3>Estado de Caja</h3>
+        </div>
+        <div class="card-content">
+          <div class="status-indicator">
+            <span class="status-badge status-open">Caja Abierta</span>
+            <span class="text-muted">Última apertura: 15/01/2024 08:30 AM</span>
+          </div>
+          <div class="mt-3">
+            <p><strong>Usuario:</strong> María González</p>
+            <p><strong>Turno:</strong> Mañana (08:00 - 16:00)</p>
+            <p><strong>Último movimiento:</strong> Venta #001234 - S/ 45.50</p>
+          </div>
         </div>
       </div>
     </div>
   </main>
+  <script>
+    $(function(){
+      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
+      $('#navbar').load('../components/navbar.html');
+      $('#sidebar').load('../components/sidebar.html');
+    });
+  </script>
 </body>
 </html>

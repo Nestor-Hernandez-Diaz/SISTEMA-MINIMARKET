@@ -21,12 +21,265 @@
   <main class="main">
     <div class="container">
       <h1>Movimientos de Caja</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="apertura.html">Apertura</a>
-        <a class="btn" href="arqueo.html">Arqueo</a>
-        <a class="btn" href="cierre.html">Cierre</a>
+      
+      <!-- Filtros -->
+      <div class="filters mb-4">
+        <div class="grid" style="grid-template-columns: 1fr 1fr 1fr auto; gap: var(--space-3); align-items: end;">
+          <div>
+            <label class="label" for="fechaInicio">Fecha inicio</label>
+            <input class="input" id="fechaInicio" type="date" value="2024-01-15" />
+          </div>
+          <div>
+            <label class="label" for="fechaFin">Fecha fin</label>
+            <input class="input" id="fechaFin" type="date" value="2024-01-15" />
+          </div>
+          <div>
+            <label class="label" for="tipoMovimiento">Tipo</label>
+            <select class="input" id="tipoMovimiento">
+              <option value="">Todos</option>
+              <option value="entrada">Entradas</option>
+              <option value="salida">Salidas</option>
+            </select>
+          </div>
+          <div>
+            <button class="btn btn-primary">Filtrar</button>
+          </div>
+        </div>
       </div>
-      <div id="tableContainer"></div>
+
+      <!-- Resumen de movimientos -->
+      <div class="resume mb-4">
+        <div class="card content">
+          <div class="text-muted">Total Entradas</div>
+          <div class="mt-2 text-success">S/ 2,450.80</div>
+        </div>
+        <div class="card content">
+          <div class="text-muted">Total Salidas</div>
+          <div class="mt-2 text-danger">S/ 180.50</div>
+        </div>
+        <div class="card content">
+          <div class="text-muted">Saldo Neto</div>
+          <div class="mt-2 text-primary">S/ 2,270.30</div>
+        </div>
+        <div class="card content">
+          <div class="text-muted">Movimientos</div>
+          <div class="mt-2">24</div>
+        </div>
+      </div>
+
+      <!-- Tabla de movimientos -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Historial de Movimientos</h3>
+        </div>
+        <div class="card-content">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Fecha/Hora</th>
+                  <th>Tipo</th>
+                  <th>Concepto</th>
+                  <th>Referencia</th>
+                  <th>Entrada</th>
+                  <th>Salida</th>
+                  <th>Saldo</th>
+                  <th>Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>15/01/2024 08:30</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Apertura de caja</td>
+                  <td>AP-001</td>
+                  <td class="text-success">S/ 500.00</td>
+                  <td>-</td>
+                  <td>S/ 500.00</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 08:45</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001234</td>
+                  <td class="text-success">S/ 45.50</td>
+                  <td>-</td>
+                  <td>S/ 545.50</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 09:15</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001235</td>
+                  <td class="text-success">S/ 78.20</td>
+                  <td>-</td>
+                  <td>S/ 623.70</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 09:30</td>
+                  <td><span class="badge badge-danger">Salida</span></td>
+                  <td>Compra a proveedor</td>
+                  <td>C-001</td>
+                  <td>-</td>
+                  <td class="text-danger">S/ 120.00</td>
+                  <td>S/ 503.70</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 10:00</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001236</td>
+                  <td class="text-success">S/ 156.80</td>
+                  <td>-</td>
+                  <td>S/ 660.50</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 10:30</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001237</td>
+                  <td class="text-success">S/ 89.40</td>
+                  <td>-</td>
+                  <td>S/ 749.90</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 11:00</td>
+                  <td><span class="badge badge-danger">Salida</span></td>
+                  <td>Gastos operativos</td>
+                  <td>GO-001</td>
+                  <td>-</td>
+                  <td class="text-danger">S/ 25.50</td>
+                  <td>S/ 724.40</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 11:30</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001238</td>
+                  <td class="text-success">S/ 234.60</td>
+                  <td>-</td>
+                  <td>S/ 959.00</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 12:00</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001239</td>
+                  <td class="text-success">S/ 67.90</td>
+                  <td>-</td>
+                  <td>S/ 1,026.90</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 12:30</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001240</td>
+                  <td class="text-success">S/ 145.30</td>
+                  <td>-</td>
+                  <td>S/ 1,172.20</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 13:00</td>
+                  <td><span class="badge badge-danger">Salida</span></td>
+                  <td>Compra a proveedor</td>
+                  <td>C-002</td>
+                  <td>-</td>
+                  <td class="text-danger">S/ 35.00</td>
+                  <td>S/ 1,137.20</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 13:30</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001241</td>
+                  <td class="text-success">S/ 198.70</td>
+                  <td>-</td>
+                  <td>S/ 1,335.90</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 14:00</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001242</td>
+                  <td class="text-success">S/ 312.40</td>
+                  <td>-</td>
+                  <td>S/ 1,648.30</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 14:30</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001243</td>
+                  <td class="text-success">S/ 89.20</td>
+                  <td>-</td>
+                  <td>S/ 1,737.50</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 15:00</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001244</td>
+                  <td class="text-success">S/ 156.80</td>
+                  <td>-</td>
+                  <td>S/ 1,894.30</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 15:30</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001245</td>
+                  <td class="text-success">S/ 267.50</td>
+                  <td>-</td>
+                  <td>S/ 2,161.80</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 16:00</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001246</td>
+                  <td class="text-success">S/ 189.00</td>
+                  <td>-</td>
+                  <td>S/ 2,350.80</td>
+                  <td>María González</td>
+                </tr>
+                <tr>
+                  <td>15/01/2024 16:15</td>
+                  <td><span class="badge badge-success">Entrada</span></td>
+                  <td>Venta al contado</td>
+                  <td>V-001247</td>
+                  <td class="text-success">S/ 100.00</td>
+                  <td>-</td>
+                  <td>S/ 2,450.80</td>
+                  <td>María González</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="pagination mt-4">
+        <button class="btn btn-outline" disabled>Anterior</button>
+        <span class="pagination-info">Página 1 de 1</span>
+        <button class="btn btn-outline" disabled>Siguiente</button>
+      </div>
     </div>
   </main>
   <script>
@@ -35,7 +288,6 @@
       $('#navbar').load('../components/navbar.html');
       $('#sidebar').load('../components/sidebar.html');
     });
-    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html');
   </script>
 </body>
 </html>

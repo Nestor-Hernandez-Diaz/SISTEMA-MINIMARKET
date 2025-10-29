@@ -24,21 +24,160 @@
       <div class="actions mb-4">
         <a class="btn" href="apertura.html">Apertura</a>
         <a class="btn" href="arqueo.html">Arqueo</a>
-        <a class="btn" href="movimientos.html">Movimientos</a>
       </div>
-      <form id="formCierre" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
-        <div>
-          <label class="label" for="fecha">Fecha</label>
-          <input class="input" id="fecha" name="fecha" type="date" data-validate="required" />
+
+      <!-- Información de la apertura actual -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3>Información de la Apertura Actual</h3>
         </div>
-        <div>
-          <label class="label" for="montoFinal">Monto final</label>
-          <input class="input" id="montoFinal" name="montoFinal" data-validate="required|number" />
+        <div class="card-content p-4">
+          <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: var(--space-4);">
+            <div class="p-3">
+              <label class="label mb-2">Fecha de apertura</label>
+              <div class="input-static p-2">15/01/2024</div>
+            </div>
+            <div class="p-3">
+              <label class="label mb-2">Hora de apertura</label>
+              <div class="input-static p-2">08:00</div>
+            </div>
+            <div class="p-3">
+              <label class="label mb-2">Turno</label>
+              <div class="input-static p-2">Mañana (08:00 - 16:00)</div>
+            </div>
+            <div class="p-3">
+              <label class="label mb-2">Monto inicial</label>
+              <div class="input-static p-2">S/ 500.00</div>
+            </div>
+            <div class="p-3">
+              <label class="label mb-2">Usuario responsable</label>
+              <div class="input-static p-2">María González</div>
+            </div>
+            <div class="p-3">
+              <label class="label mb-2">Estado</label>
+              <div class="input-static p-2">
+                <span class="badge badge-success">Caja Abierta</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="col-span-2">
-          <button type="submit" class="btn btn-primary">Cerrar Caja</button>
+      </div>
+
+      <!-- Resumen de operaciones del día -->
+      <div class="resume mb-4">
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Total ingresos</div>
+          <div class="text-success text-lg">S/ 2,450.80</div>
         </div>
-      </form>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Total egresos</div>
+          <div class="text-danger text-lg">S/ 180.50</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Saldo calculado</div>
+          <div class="text-primary text-lg">S/ 2,770.30</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Movimientos</div>
+          <div class="text-lg">24</div>
+        </div>
+      </div>
+
+      <!-- Formulario de cierre -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Cierre de Caja</h3>
+        </div>
+        <div class="card-content p-4">
+          <form id="formCierre" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+            <div class="form-group">
+              <label class="label mb-2" for="fechaCierre">Fecha de cierre</label>
+              <input class="input" id="fechaCierre" name="fechaCierre" type="date" value="2024-01-15" data-validate="required" />
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="horaCierre">Hora de cierre</label>
+              <input class="input" id="horaCierre" name="horaCierre" type="time" value="16:00" data-validate="required" />
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="saldoCalculado">Saldo según sistema</label>
+              <input class="input" id="saldoCalculado" name="saldoCalculado" type="number" step="0.01" value="2770.30" data-validate="required|number" readonly />
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="saldoFisico">Saldo físico contado</label>
+              <input class="input" id="saldoFisico" name="saldoFisico" type="number" step="0.01" placeholder="0.00" data-validate="required|number" />
+              <small class="text-muted mt-1">Efectivo real encontrado en caja</small>
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="diferencia">Diferencia</label>
+              <input class="input" id="diferencia" name="diferencia" type="number" step="0.01" value="0.00" readonly />
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="observaciones">Observaciones</label>
+              <textarea class="input" id="observaciones" name="observaciones" rows="3" placeholder="Notas sobre el cierre de caja...">Cierre de turno mañana. Todas las operaciones registradas correctamente.</textarea>
+            </div>
+            <div class="col-span-2 text-center mt-4">
+              <button type="submit" class="btn btn-primary">Cerrar Caja</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Historial de cierres -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <h3>Historial de Cierres</h3>
+        </div>
+        <div class="card-content p-4">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="p-3">Fecha</th>
+                  <th class="p-3">Hora</th>
+                  <th class="p-3">Turno</th>
+                  <th class="p-3">Saldo Final</th>
+                  <th class="p-3">Usuario</th>
+                  <th class="p-3">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-3">14/01/2024</td>
+                  <td class="p-3">16:30</td>
+                  <td class="p-3">Mañana</td>
+                  <td class="p-3">S/ 2,450.80</td>
+                  <td class="p-3">María González</td>
+                  <td class="p-3"><span class="badge badge-success">Cerrada</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3">13/01/2024</td>
+                  <td class="p-3">00:00</td>
+                  <td class="p-3">Tarde</td>
+                  <td class="p-3">S/ 1,895.20</td>
+                  <td class="p-3">Carlos Ruiz</td>
+                  <td class="p-3"><span class="badge badge-success">Cerrada</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3">13/01/2024</td>
+                  <td class="p-3">16:00</td>
+                  <td class="p-3">Mañana</td>
+                  <td class="p-3">S/ 2,100.30</td>
+                  <td class="p-3">María González</td>
+                  <td class="p-3"><span class="badge badge-success">Cerrada</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3">12/01/2024</td>
+                  <td class="p-3">08:00</td>
+                  <td class="p-3">Noche</td>
+                  <td class="p-3">S/ 1,750.60</td>
+                  <td class="p-3">Ana Torres</td>
+                  <td class="p-3"><span class="badge badge-success">Cerrada</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
   <script>
@@ -46,14 +185,41 @@
       if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
       $('#navbar').load('../components/navbar.html');
       $('#sidebar').load('../components/sidebar.html');
+      
+      // Establecer fecha y hora actual por defecto
+      const now = new Date();
+      const fecha = now.toISOString().split('T')[0];
+      const hora = now.toTimeString().slice(0, 5);
+      
+      $('#fechaCierre').val(fecha);
+      $('#horaCierre').val(hora);
+      
+      // Calcular diferencia automáticamente
+      $('#saldoFisico').on('input', function(){
+        const saldoCalculado = parseFloat($('#saldoCalculado').val()) || 0;
+        const saldoFisico = parseFloat($(this).val()) || 0;
+        const diferencia = saldoFisico - saldoCalculado;
+        $('#diferencia').val(diferencia.toFixed(2));
+      });
+      
+      // Manejar envío del formulario
       $('#formCierre').on('submit', async function(e){
         e.preventDefault();
         const errs = Validation.validateForm($(this));
-        if (errs.length) { Notifications.show('Verifica los campos', 'warning'); return; }
+        if (errs.length) { 
+          Notifications.show('Verifica los campos', 'warning'); 
+          return; 
+        }
         const data = Object.fromEntries(new FormData(this).entries());
         const res = await API.post('/caja/cierre', data);
-        if (res.ok) { Notifications.show('Caja cerrada', 'success'); }
-        else { Notifications.show('Error al cerrar caja', 'danger'); }
+        if (res.ok) { 
+          Notifications.show('Caja cerrada correctamente', 'success');
+          // Redirigir a la página principal de caja
+          setTimeout(() => location.href = 'caja.html', 1500);
+        }
+        else { 
+          Notifications.show('Error al cerrar caja', 'danger'); 
+        }
       });
     });
   </script>

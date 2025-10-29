@@ -23,10 +23,158 @@
       <h1>Arqueo de Caja</h1>
       <div class="actions mb-4">
         <a class="btn" href="apertura.html">Apertura</a>
-        <a class="btn" href="movimientos.html">Movimientos</a>
         <a class="btn" href="cierre.html">Cierre</a>
       </div>
-      <div id="tableContainer"></div>
+
+      <!-- Información del arqueo -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3>Información del Arqueo</h3>
+        </div>
+        <div class="card-content">
+          <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: var(--space-4);">
+            <div class="p-3">
+              <label class="label mb-2">Turno</label>
+              <div class="input-static p-2">Mañana (08:00 - 16:00)</div>
+            </div>
+            <div class="p-3">
+              <label class="label mb-2">Fecha</label>
+              <div class="input-static p-2">15/01/2024</div>
+            </div>
+            <div class="p-3">
+              <label class="label mb-2">Usuario</label>
+              <div class="input-static p-2">María González</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de saldos -->
+      <div class="resume mb-4">
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Saldo según sistema</div>
+          <div class="text-primary text-lg">S/ 2,770.30</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Saldo físico contado</div>
+          <div class="text-info text-lg">S/ 2,765.50</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Diferencia</div>
+          <div class="text-danger text-lg">S/ -4.80</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Estado</div>
+          <div class="mt-1">
+            <span class="badge badge-warning">Diferencia menor</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario de arqueo -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Registrar Arqueo</h3>
+        </div>
+        <div class="card-content p-4">
+          <form id="formArqueo" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+            <div class="form-group">
+              <label class="label mb-2" for="fechaArqueo">Fecha del arqueo</label>
+              <input class="input" id="fechaArqueo" name="fechaArqueo" type="date" value="2024-01-15" data-validate="required" />
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="turno">Turno</label>
+              <select class="input" id="turno" name="turno" data-validate="required">
+                <option value="">Seleccionar turno</option>
+                <option value="mañana" selected>Mañana (08:00 - 16:00)</option>
+                <option value="tarde">Tarde (16:00 - 00:00)</option>
+                <option value="noche">Noche (00:00 - 08:00)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="saldoSistema">Saldo según sistema</label>
+              <input class="input" id="saldoSistema" name="saldoSistema" type="number" step="0.01" value="2770.30" data-validate="required|number" readonly />
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="saldoFisico">Saldo físico contado</label>
+              <input class="input" id="saldoFisico" name="saldoFisico" type="number" step="0.01" value="2765.50" data-validate="required|number" />
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="diferencia">Diferencia calculada</label>
+              <input class="input" id="diferencia" name="diferencia" type="number" step="0.01" value="-4.80" readonly />
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="observaciones">Observaciones</label>
+              <textarea class="input" id="observaciones" name="observaciones" rows="3" placeholder="Detalle las diferencias encontradas...">Falta de S/ 4.80 en efectivo. Posible error en el conteo de monedas pequeñas.</textarea>
+            </div>
+            <div class="col-span-2 text-center mt-4">
+              <button type="submit" class="btn btn-primary">Registrar Arqueo</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Historial de arqueos -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <h3>Historial de Arqueos</h3>
+        </div>
+        <div class="card-content p-4">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="p-3">Fecha</th>
+                  <th class="p-3">Turno</th>
+                  <th class="p-3">Saldo Sistema</th>
+                  <th class="p-3">Saldo Físico</th>
+                  <th class="p-3">Diferencia</th>
+                  <th class="p-3">Estado</th>
+                  <th class="p-3">Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-3">14/01/2024</td>
+                  <td class="p-3">Mañana</td>
+                  <td class="p-3">S/ 2,450.80</td>
+                  <td class="p-3">S/ 2,450.80</td>
+                  <td class="p-3 text-success">S/ 0.00</td>
+                  <td class="p-3"><span class="badge badge-success">Exacto</span></td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">13/01/2024</td>
+                  <td class="p-3">Tarde</td>
+                  <td class="p-3">S/ 1,890.50</td>
+                  <td class="p-3">S/ 1,895.20</td>
+                  <td class="p-3 text-success">S/ +4.70</td>
+                  <td class="p-3"><span class="badge badge-success">Exacto</span></td>
+                  <td class="p-3">Carlos Ruiz</td>
+                </tr>
+                <tr>
+                  <td class="p-3">12/01/2024</td>
+                  <td class="p-3">Mañana</td>
+                  <td class="p-3">S/ 2,100.30</td>
+                  <td class="p-3">S/ 2,095.80</td>
+                  <td class="p-3 text-danger">S/ -4.50</td>
+                  <td class="p-3"><span class="badge badge-warning">Diferencia menor</span></td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">11/01/2024</td>
+                  <td class="p-3">Noche</td>
+                  <td class="p-3">S/ 1,750.60</td>
+                  <td class="p-3">S/ 1,750.60</td>
+                  <td class="p-3 text-success">S/ 0.00</td>
+                  <td class="p-3"><span class="badge badge-success">Exacto</span></td>
+                  <td class="p-3">Ana Torres</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
   <script>
@@ -34,8 +182,35 @@
       if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
       $('#navbar').load('../components/navbar.html');
       $('#sidebar').load('../components/sidebar.html');
+      
+      // Calcular diferencia automáticamente
+      $('#saldoFisico').on('input', function(){
+        const saldoSistema = parseFloat($('#saldoSistema').val()) || 0;
+        const saldoFisico = parseFloat($(this).val()) || 0;
+        const diferencia = saldoFisico - saldoSistema;
+        $('#diferencia').val(diferencia.toFixed(2));
+      });
+      
+      // Manejar envío del formulario
+      $('#formArqueo').on('submit', async function(e){
+        e.preventDefault();
+        const errs = Validation.validateForm($(this));
+        if (errs.length) { 
+          Notifications.show('Verifica los campos', 'warning'); 
+          return; 
+        }
+        const data = Object.fromEntries(new FormData(this).entries());
+        const res = await API.post('/caja/arqueo', data);
+        if (res.ok) { 
+          Notifications.show('Arqueo registrado correctamente', 'success');
+          // Recargar la página para mostrar el nuevo arqueo
+          setTimeout(() => location.reload(), 1500);
+        }
+        else { 
+          Notifications.show('Error al registrar arqueo', 'danger'); 
+        }
+      });
     });
-    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html');
   </script>
 </body>
 </html>
