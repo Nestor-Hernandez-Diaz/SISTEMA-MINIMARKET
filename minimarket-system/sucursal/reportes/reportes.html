@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sucursal - Reportes</title>
+  <title>Sucursal - Dashboard de Reportes</title>
   <link rel="stylesheet" href="../assets/css/variables.css" />
   <link rel="stylesheet" href="../assets/css/layout.css" />
   <link rel="stylesheet" href="../assets/css/components.css" />
   <link rel="stylesheet" href="../assets/css/pages.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/minimarket-system/shared/js/utils.js"></script>
   <script src="/minimarket-system/shared/js/notifications.js"></script>
   <script src="/minimarket-system/shared/js/api.js"></script>
@@ -18,23 +19,783 @@
 <body class="page reportes-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Reportes</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="reporte-ventas.html">Ventas</a>
-        <a class="btn" href="reporte-compras.html">Compras</a>
-        <a class="btn" href="reporte-inventario.html">Inventario</a>
-        <a class="btn" href="reporte-caja.html">Caja</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <div>
+          <h1 class="text-xl fw-600">Dashboard de Reportes</h1>
+          <p class="text-muted text-sm">Análisis integral del negocio - Ventas, Inventario, Compras y Caja</p>
+        </div>
+        <div>
+          <select id="periodo_dashboard" class="input" style="width: auto; display: inline-block; margin-right: 10px;" onchange="actualizarDashboard()">
+            <option value="hoy">Hoy</option>
+            <option value="semana">Esta Semana</option>
+            <option value="mes" selected>Este Mes</option>
+            <option value="trimestre">Este Trimestre</option>
+            <option value="año">Este Año</option>
+          </select>
+          <button class="btn btn-primary" onclick="generarReporteCompleto()">
+            Generar Reporte Completo
+          </button>
+        </div>
+      </div>
+
+      <!-- Indicadores Principales -->
+      <div class="stats-grid mb-4">
+        <div class="stat-card">
+          <div class="stat-icon bg-primary">S/</div>
+          <div class="stat-content">
+            <div class="stat-label">Ventas Totales</div>
+            <div class="stat-value text-primary">S/ 125,450.80</div>
+            <div class="stat-change text-success">+15.3% vs mes anterior</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-success">S/</div>
+          <div class="stat-content">
+            <div class="stat-label">Utilidad Neta</div>
+            <div class="stat-value text-success">S/ 35,753.47</div>
+            <div class="stat-change text-success">Margen 28.5%</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-warning">S/</div>
+          <div class="stat-content">
+            <div class="stat-label">Valor Inventario</div>
+            <div class="stat-value text-warning">S/ 285,450.00</div>
+            <div class="stat-change text-info">1,245 productos</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-info">S/</div>
+          <div class="stat-content">
+            <div class="stat-label">Saldo en Caja</div>
+            <div class="stat-value text-info">S/ 18,245.30</div>
+            <div class="stat-change text-success">Flujo positivo</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficos Principales -->
+      <div class="form-row mb-4">
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="text-lg fw-600">Tendencia de Ventas vs Compras</h2>
+            </div>
+            <div class="card-body">
+              <canvas id="chartVentasCompras" height="300"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="text-lg fw-600">Distribución de Ingresos</h2>
+            </div>
+            <div class="card-body">
+              <canvas id="chartDistribucion" height="300"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reportes de Ventas -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <div>
+            <h2 class="text-lg fw-600">Reportes de Ventas</h2>
+            <p class="text-sm text-muted">Análisis detallado del desempeño comercial</p>
+          </div>
+          <div>
+            <button class="btn btn-success btn-sm" onclick="exportarSeccion('ventas')">
+              Exportar Sección
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="form-row mb-4">
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Total Ventas</div>
+                <div class="stat-value text-primary">S/ 125,450.80</div>
+                <div class="stat-meta text-muted">2,847 transacciones</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Ticket Promedio</div>
+                <div class="stat-value text-info">S/ 44.05</div>
+                <div class="stat-meta text-success">+2.1% mejora</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Producto Más Vendido</div>
+                <div class="stat-value text-sm">Arroz Superior 1kg</div>
+                <div class="stat-meta text-muted">385 unidades</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Categoría Líder</div>
+                <div class="stat-value text-sm">Abarrotes</div>
+                <div class="stat-meta text-muted">S/ 42,350.80</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="text-md fw-600">Ventas por Categoría</h3>
+                </div>
+                <div class="card-body">
+                  <canvas id="chartVentasCategoria" height="250"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="text-md fw-600">Métodos de Pago</h3>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Método</th>
+                          <th>Transacciones</th>
+                          <th>Monto</th>
+                          <th>%</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><strong>Efectivo</strong></td>
+                          <td>1,548</td>
+                          <td><strong>S/ 58,245.30</strong></td>
+                          <td>46.4%</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Tarjeta Débito</strong></td>
+                          <td>845</td>
+                          <td><strong>S/ 42,180.25</strong></td>
+                          <td>33.6%</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Tarjeta Crédito</strong></td>
+                          <td>387</td>
+                          <td><strong>S/ 19,825.15</strong></td>
+                          <td>15.8%</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Yape/Plin</strong></td>
+                          <td>67</td>
+                          <td><strong>S/ 5,200.10</strong></td>
+                          <td>4.2%</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr class="fw-600">
+                          <td>TOTAL</td>
+                          <td><strong>2,847</strong></td>
+                          <td><strong>S/ 125,450.80</strong></td>
+                          <td>100%</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3 text-right">
+            <a href="reporte-ventas-diarias.html" class="btn btn-secondary btn-sm">Ver Ventas Diarias</a>
+            <a href="reporte-ventas-periodo.html" class="btn btn-secondary btn-sm">Ver por Período</a>
+            <a href="reporte-ventas-producto.html" class="btn btn-secondary btn-sm">Ver por Producto</a>
+            <a href="reporte-ventas-cajero.html" class="btn btn-secondary btn-sm">Ver por Cajero</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reportes de Inventario -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <div>
+            <h2 class="text-lg fw-600">Reportes de Inventario</h2>
+            <p class="text-sm text-muted">Estado y movimientos del stock</p>
+          </div>
+          <div>
+            <button class="btn btn-success btn-sm" onclick="exportarSeccion('inventario')">
+              Exportar Sección
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="form-row mb-4">
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Valor Total</div>
+                <div class="stat-value text-warning">S/ 285,450.00</div>
+                <div class="stat-meta text-muted">1,245 productos</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Stock Total</div>
+                <div class="stat-value text-info">27,460 unidades</div>
+                <div class="stat-meta text-muted">6 categorías</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card bg-warning">
+                <div class="stat-label">Bajo Stock</div>
+                <div class="stat-value text-warning">48 productos</div>
+                <div class="stat-meta text-muted">Requieren reposición</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card bg-danger">
+                <div class="stat-label">Sin Stock</div>
+                <div class="stat-value text-danger">12 productos</div>
+                <div class="stat-meta text-muted">Urgente reposición</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="text-md fw-600">Stock por Categoría</h3>
+                </div>
+                <div class="card-body">
+                  <canvas id="chartStockCategoria" height="250"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="text-md fw-600">Productos Críticos</h3>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Producto</th>
+                          <th>Stock</th>
+                          <th>Mínimo</th>
+                          <th>Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="table-danger">
+                          <td>Aceite Primor 1L</td>
+                          <td><strong>5</strong></td>
+                          <td>20</td>
+                          <td><span class="badge badge-danger">Crítico</span></td>
+                        </tr>
+                        <tr class="table-danger">
+                          <td>Papel Higiénico Elite</td>
+                          <td><strong>8</strong></td>
+                          <td>25</td>
+                          <td><span class="badge badge-danger">Crítico</span></td>
+                        </tr>
+                        <tr class="table-warning">
+                          <td>Azúcar Blanca 1kg</td>
+                          <td><strong>15</strong></td>
+                          <td>30</td>
+                          <td><span class="badge badge-warning">Bajo</span></td>
+                        </tr>
+                        <tr class="table-warning">
+                          <td>Detergente Ariel 1kg</td>
+                          <td><strong>18</strong></td>
+                          <td>35</td>
+                          <td><span class="badge badge-warning">Bajo</span></td>
+                        </tr>
+                        <tr class="table-warning">
+                          <td>Leche Gloria Evaporada</td>
+                          <td><strong>22</strong></td>
+                          <td>40</td>
+                          <td><span class="badge badge-warning">Bajo</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3 text-right">
+            <a href="reporte-stock-actual.html" class="btn btn-secondary btn-sm">Ver Stock Actual</a>
+            <a href="reporte-stock-minimo.html" class="btn btn-secondary btn-sm">Ver Stock Mínimo</a>
+            <a href="reporte-movimientos.html" class="btn btn-secondary btn-sm">Ver Movimientos</a>
+            <a href="reporte-valorizado.html" class="btn btn-secondary btn-sm">Ver Valorizado</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reportes de Compras -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <div>
+            <h2 class="text-lg fw-600">Reportes de Compras</h2>
+            <p class="text-sm text-muted">Análisis de adquisiciones y proveedores</p>
+          </div>
+          <div>
+            <button class="btn btn-success btn-sm" onclick="exportarSeccion('compras')">
+              Exportar Sección
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="form-row mb-4">
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Total Compras</div>
+                <div class="stat-value text-primary">S/ 89,697.33</div>
+                <div class="stat-meta text-muted">145 órdenes</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Productos Comprados</div>
+                <div class="stat-value text-info">8,450 unidades</div>
+                <div class="stat-meta text-muted">285 productos</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Proveedores Activos</div>
+                <div class="stat-value text-success">18 proveedores</div>
+                <div class="stat-meta text-muted">12 con compras recientes</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card bg-warning">
+                <div class="stat-label">Cuentas por Pagar</div>
+                <div class="stat-value text-danger">S/ 24,850.00</div>
+                <div class="stat-meta text-muted">8 facturas pendientes</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="text-md fw-600">Top 5 Proveedores</h3>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Proveedor</th>
+                          <th>Compras</th>
+                          <th>Monto Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><strong>Alicorp S.A.</strong></td>
+                          <td>28</td>
+                          <td><strong>S/ 24,580.00</strong></td>
+                        </tr>
+                        <tr>
+                          <td><strong>Gloria S.A.</strong></td>
+                          <td>22</td>
+                          <td><strong>S/ 18,450.00</strong></td>
+                        </tr>
+                        <tr>
+                          <td><strong>Backus</strong></td>
+                          <td>18</td>
+                          <td><strong>S/ 15,680.00</strong></td>
+                        </tr>
+                        <tr>
+                          <td><strong>Molitalia</strong></td>
+                          <td>15</td>
+                          <td><strong>S/ 12,340.00</strong></td>
+                        </tr>
+                        <tr>
+                          <td><strong>Procter & Gamble</strong></td>
+                          <td>12</td>
+                          <td><strong>S/ 9,850.00</strong></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="text-md fw-600">Rentabilidad por Producto</h3>
+                </div>
+                <div class="card-body">
+                  <canvas id="chartRentabilidad" height="250"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3 text-right">
+            <a href="reporte-compras-periodo.html" class="btn btn-secondary btn-sm">Ver por Período</a>
+            <a href="reporte-compras-proveedor.html" class="btn btn-secondary btn-sm">Ver por Proveedor</a>
+            <a href="reporte-cuentas-pagar.html" class="btn btn-secondary btn-sm">Ver Cuentas por Pagar</a>
+            <a href="reporte-rentabilidad.html" class="btn btn-secondary btn-sm">Análisis de Rentabilidad</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reportes de Caja -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <div>
+            <h2 class="text-lg fw-600">Reportes de Caja</h2>
+            <p class="text-sm text-muted">Control de flujo de efectivo y movimientos financieros</p>
+          </div>
+          <div>
+            <button class="btn btn-success btn-sm" onclick="exportarSeccion('caja')">
+              Exportar Sección
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="form-row mb-4">
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Saldo Actual</div>
+                <div class="stat-value text-success">S/ 18,245.30</div>
+                <div class="stat-meta text-muted">Caja disponible</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Ingresos del Mes</div>
+                <div class="stat-value text-primary">S/ 125,450.80</div>
+                <div class="stat-meta text-success">+15.3% incremento</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Egresos del Mes</div>
+                <div class="stat-value text-danger">S/ 107,205.50</div>
+                <div class="stat-meta text-muted">Compras y gastos</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Flujo Neto</div>
+                <div class="stat-value text-info">S/ 18,245.30</div>
+                <div class="stat-meta text-success">Balance positivo</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="text-md fw-600">Flujo de Efectivo</h3>
+                </div>
+                <div class="card-body">
+                  <canvas id="chartFlujoEfectivo" height="250"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="text-md fw-600">Desglose de Gastos</h3>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Concepto</th>
+                          <th>Monto</th>
+                          <th>% del Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><strong>Compras a Proveedores</strong></td>
+                          <td><strong>S/ 89,697.33</strong></td>
+                          <td>83.7%</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Sueldos y Salarios</strong></td>
+                          <td><strong>S/ 8,500.00</strong></td>
+                          <td>7.9%</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Servicios Básicos</strong></td>
+                          <td><strong>S/ 3,850.00</strong></td>
+                          <td>3.6%</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Alquiler</strong></td>
+                          <td><strong>S/ 3,200.00</strong></td>
+                          <td>3.0%</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Otros Gastos</strong></td>
+                          <td><strong>S/ 1,958.17</strong></td>
+                          <td>1.8%</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr class="fw-600">
+                          <td>TOTAL EGRESOS</td>
+                          <td><strong>S/ 107,205.50</strong></td>
+                          <td>100%</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3 text-right">
+            <a href="reporte-caja-diaria.html" class="btn btn-secondary btn-sm">Ver Caja Diaria</a>
+            <a href="reporte-flujo-efectivo.html" class="btn btn-secondary btn-sm">Ver Flujo de Efectivo</a>
+            <a href="reporte-utilidades.html" class="btn btn-secondary btn-sm">Ver Utilidades</a>
+            <a href="reporte-gastos.html" class="btn btn-secondary btn-sm">Ver Gastos</a>
+          </div>
+        </div>
+      </div>
+          <div class="mt-4 text-center">
+            <button class="btn btn-primary" onclick="generarReporteCompleto()">
+              Descargar Reporte Completo en PDF
+            </button>
+            <button class="btn btn-success" onclick="exportarExcel('completo')">
+              Exportar Todo a Excel
+            </button>
+            <button class="btn btn-info" onclick="enviarPorEmail()">
+              Enviar por Email
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </main>
+
   <script>
     $(function(){ 
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
+      if (!Auth.requireRole(['sucursal', 'admin'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
+      
+      inicializarGraficos();
     });
+    
+    function inicializarGraficos() {
+      // Gráfico de Ventas vs Compras
+      const ctx1 = document.getElementById('chartVentasCompras');
+      new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+          datasets: [
+            {
+              label: 'Ventas',
+              data: [28450, 32180, 35820, 29000],
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'Compras',
+              data: [20150, 24580, 28450, 16517],
+              borderColor: '#ef4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' }
+          }
+        }
+      });
+      
+      // Gráfico de Distribución de Ingresos
+      const ctx2 = document.getElementById('chartDistribucion');
+      new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: ['Ventas Directas', 'Utilidad', 'Costo de Ventas'],
+          datasets: [{
+            data: [125450, 35753, 89697],
+            backgroundColor: [
+              'rgba(59, 130, 246, 0.8)',
+              'rgba(16, 185, 129, 0.8)',
+              'rgba(239, 68, 68, 0.8)'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+      
+      // Gráfico de Ventas por Categoría
+      const ctx3 = document.getElementById('chartVentasCategoria');
+      new Chart(ctx3, {
+        type: 'bar',
+        data: {
+          labels: ['Abarrotes', 'Bebidas', 'Lácteos', 'Limpieza', 'Snacks', 'Higiene'],
+          datasets: [{
+            label: 'Ventas (S/)',
+            data: [42350, 28745, 18920, 15680, 8754, 11000],
+            backgroundColor: 'rgba(59, 130, 246, 0.8)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+      
+      // Gráfico de Stock por Categoría
+      const ctx4 = document.getElementById('chartStockCategoria');
+      new Chart(ctx4, {
+        type: 'bar',
+        data: {
+          labels: ['Abarrotes', 'Bebidas', 'Lácteos', 'Limpieza', 'Snacks', 'Higiene'],
+          datasets: [{
+            label: 'Stock (unidades)',
+            data: [8450, 6780, 3240, 2890, 4120, 1980],
+            backgroundColor: 'rgba(245, 158, 11, 0.8)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+      
+      // Gráfico de Rentabilidad
+      const ctx5 = document.getElementById('chartRentabilidad');
+      new Chart(ctx5, {
+        type: 'bar',
+        data: {
+          labels: ['Arroz', 'Aceite', 'Leche', 'Coca Cola', 'Detergente'],
+          datasets: [{
+            label: 'Margen %',
+            data: [25, 32, 28, 35, 38],
+            backgroundColor: 'rgba(16, 185, 129, 0.8)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 50
+            }
+          }
+        }
+      });
+      
+      // Gráfico de Flujo de Efectivo
+      const ctx6 = document.getElementById('chartFlujoEfectivo');
+      new Chart(ctx6, {
+        type: 'line',
+        data: {
+          labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+          datasets: [
+            {
+              label: 'Ingresos',
+              data: [28450, 32180, 35820, 29000],
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'Egresos',
+              data: [24580, 26150, 30825, 25650],
+              borderColor: '#ef4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' }
+          }
+        }
+      });
+    }
+    
+    function actualizarDashboard() {
+      const periodo = $('#periodo_dashboard').val();
+      Notifications.show(`Actualizando dashboard para: ${periodo}`, 'info');
+      // Aquí iría la llamada a la API
+    }
+    
+    function generarReporteCompleto() {
+      Notifications.show('Generando reporte completo en PDF...', 'success');
+      setTimeout(() => {
+        Notifications.show('Reporte generado exitosamente', 'success');
+      }, 2000);
+    }
+    
+    function exportarSeccion(seccion) {
+      Notifications.show(`Exportando sección de ${seccion} a Excel...`, 'success');
+    }
+    
+    function exportarExcel(tipo) {
+      Notifications.show(`Exportando ${tipo} a Excel...`, 'success');
+    }
+    
+    function enviarPorEmail() {
+      const email = prompt('Ingrese el correo electrónico:');
+      if (email) {
+        Notifications.show(`Enviando reporte a ${email}...`, 'success');
+      }
+    }
   </script>
 </body>
 </html>

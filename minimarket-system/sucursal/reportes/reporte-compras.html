@@ -13,49 +13,1016 @@
   <script src="/minimarket-system/shared/js/notifications.js"></script>
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
-  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="../assets/js/main.js"></script>
 </head>
 <body class="page reportes-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Reporte de Compras</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="reportes.html">Reportes</a>
-        <a class="btn" href="reporte-ventas.html">Ventas</a>
-        <a class="btn" href="reporte-inventario.html">Inventario</a>
-        <a class="btn" href="reporte-caja.html">Caja</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <h1 class="text-xl fw-600"><span id="tituloReporte">Reporte de Compras</span></h1>
+        <p class="text-muted text-sm">Análisis y control de compras</p>
       </div>
-      <form id="formCompras" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
-        <div>
-          <label class="label" for="desde">Desde</label>
-          <input class="input" id="desde" name="desde" type="date" data-validate="required" />
+
+      <!-- Selector de Tipo de Reporte -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Tipo de Reporte</h2>
         </div>
-        <div>
-          <label class="label" for="hasta">Hasta</label>
-          <input class="input" id="hasta" name="hasta" type="date" data-validate="required" />
+        <div class="card-body">
+          <div class="form-group">
+            <label for="tipoReporte" class="form-label">Seleccione el tipo de reporte</label>
+            <select id="tipoReporte" class="input" onchange="cambiarTipoReporte(this.value)">
+              <option value="periodo">Compras por Período</option>
+              <option value="proveedor">Compras por Proveedor</option>
+              <option value="cuentas">Cuentas por Pagar</option>
+              <option value="rentabilidad">Análisis de Rentabilidad</option>
+            </select>
+          </div>
         </div>
-        <div class="col-span-2">
-          <button class="btn btn-primary" type="submit">Generar</button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Filtros de Búsqueda</h2>
         </div>
-      </form>
+        <div class="card-body">
+          <form id="formFiltros">
+            <div class="form-row" id="filtrosContainer">
+              <!-- Los filtros se cargan dinámicamente -->
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Resumen -->
+      <div class="reporte-resumen mb-4" id="resumenContainer">
+        <!-- El resumen se carga dinámicamente -->
+      </div>
+
+      <!-- Tabla de Resultados -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-lg fw-600"><span id="tituloTabla">Detalle de Compras</span></h2>
+        </div>
+        <div class="card-body">
+          <div class="table-actions mb-3">
+            <input type="text" id="searchTable" class="input" placeholder="Buscar..." style="max-width: 300px;" />
+            <button class="btn btn-success" onclick="exportarExcel()">
+              Exportar Excel
+            </button>
+            <button class="btn btn-secondary" onclick="exportarPDF()">
+              Exportar PDF
+            </button>
+            <button class="btn" onclick="imprimirReporte()">
+              Imprimir
+            </button>
+          </div>
+
+          <div class="table-responsive" id="tablaContainer">
+            <!-- La tabla se carga dinámicamente -->
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
   <script>
-    $(function(){
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
-      $('#formCompras').on('submit', async function(e){
+    let tipoReporte = 'periodo';
+    
+    $(function(){ 
+      if (!Auth.requireRole(['sucursal', 'admin', 'compras'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
+      
+      // Obtener tipo desde URL si existe
+      const urlParams = new URLSearchParams(window.location.search);
+      const tipoParam = urlParams.get('tipo');
+      if (tipoParam) {
+        tipoReporte = tipoParam;
+        $('#tipoReporte').val(tipoParam);
+      }
+      
+      cargarReporte(tipoReporte);
+    });
+    
+    function cambiarTipoReporte(tipo) {
+      tipoReporte = tipo;
+      cargarReporte(tipo);
+    }
+    
+    function cargarReporte(tipo) {
+      switch(tipo) {
+        case 'periodo':
+          cargarComprasPeriodo();
+          break;
+        case 'proveedor':
+          cargarComprasProveedor();
+          break;
+        case 'cuentas':
+          cargarCuentasPagar();
+          break;
+        case 'rentabilidad':
+          cargarRentabilidad();
+          break;
+        default:
+          cargarComprasPeriodo();
+      }
+    }
+    
+    function cargarComprasPeriodo() {
+      $('#tituloReporte').text('Compras por Período');
+      $('#tituloTabla').text('Historial de Compras Realizadas');
+      
+      const hoy = new Date();
+      const hace30Dias = new Date(hoy.getTime() - (30 * 24 * 60 * 60 * 1000));
+      
+      $('#filtrosContainer').html(`
+        <div class="form-group">
+          <label for="fecha_inicio" class="form-label required">Fecha Inicio</label>
+          <input type="date" id="fecha_inicio" class="input" value="${hace30Dias.toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="fecha_fin" class="form-label required">Fecha Fin</label>
+          <input type="date" id="fecha_fin" class="input" value="${hoy.toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="proveedor" class="form-label">Proveedor</label>
+          <select id="proveedor" class="input">
+            <option value="">Todos los proveedores</option>
+            <option value="1">Distribuidora Norte S.A.</option>
+            <option value="2">Comercial del Sur E.I.R.L.</option>
+            <option value="3">Alimentos Frescos S.A.C.</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="estado" class="form-label">Estado</label>
+          <select id="estado" class="input">
+            <option value="">Todos</option>
+            <option value="pagado">Pagado</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="parcial">Pago Parcial</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </div>
+      `);
+      
+      $('#resumenContainer').html(`
+        <div class="resumen-card">
+          <div class="resumen-label">Total Compras</div>
+          <div class="resumen-value">S/ 85,450.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Número de Compras</div>
+          <div class="resumen-value">45</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Total Pagado</div>
+          <div class="resumen-value text-success">S/ 62,340.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Saldo Pendiente</div>
+          <div class="resumen-value text-warning">S/ 23,110.00</div>
+        </div>
+      `);
+      
+      $('#tablaContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>N° Compra</th>
+              <th>Fecha</th>
+              <th>Proveedor</th>
+              <th>N° Factura</th>
+              <th>Productos</th>
+              <th>Subtotal</th>
+              <th>IGV</th>
+              <th>Total</th>
+              <th>Pagado</th>
+              <th>Saldo</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>COMP-001</strong></td>
+              <td>2025-10-29</td>
+              <td>Distribuidora Norte S.A.</td>
+              <td>F001-0001234</td>
+              <td>15</td>
+              <td>S/ 4,237.29</td>
+              <td>S/ 762.71</td>
+              <td><strong>S/ 5,000.00</strong></td>
+              <td class="text-success">S/ 5,000.00</td>
+              <td>S/ 0.00</td>
+              <td><span class="badge badge-success">Pagado</span></td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verDetalle('COMP-001')">👁️</button>
+                <button class="btn btn-sm btn-secondary" onclick="imprimirCompra('COMP-001')">🖨️</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>COMP-002</strong></td>
+              <td>2025-10-28</td>
+              <td>Comercial del Sur E.I.R.L.</td>
+              <td>F002-0005678</td>
+              <td>22</td>
+              <td>S/ 6,355.93</td>
+              <td>S/ 1,144.07</td>
+              <td><strong>S/ 7,500.00</strong></td>
+              <td class="text-warning">S/ 3,000.00</td>
+              <td class="text-danger">S/ 4,500.00</td>
+              <td><span class="badge badge-warning">Parcial</span></td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verDetalle('COMP-002')"></button>
+                <button class="btn btn-sm btn-primary" onclick="registrarPago('COMP-002')"></button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>COMP-003</strong></td>
+              <td>2025-10-27</td>
+              <td>Alimentos Frescos S.A.C.</td>
+              <td>F003-0002345</td>
+              <td>18</td>
+              <td>S/ 2,542.37</td>
+              <td>S/ 457.63</td>
+              <td><strong>S/ 3,000.00</strong></td>
+              <td>S/ 0.00</td>
+              <td class="text-danger">S/ 3,000.00</td>
+              <td><span class="badge badge-danger">Pendiente</span></td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verDetalle('COMP-003')"></button>
+                <button class="btn btn-sm btn-primary" onclick="registrarPago('COMP-003')"></button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>COMP-004</strong></td>
+              <td>2025-10-26</td>
+              <td>Distribuidora Norte S.A.</td>
+              <td>F001-0001235</td>
+              <td>25</td>
+              <td>S/ 8,474.58</td>
+              <td>S/ 1,525.42</td>
+              <td><strong>S/ 10,000.00</strong></td>
+              <td class="text-success">S/ 10,000.00</td>
+              <td>S/ 0.00</td>
+              <td><span class="badge badge-success">Pagado</span></td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verDetalle('COMP-004')"></button>
+                <button class="btn btn-sm btn-secondary" onclick="imprimirCompra('COMP-004')"></button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>COMP-005</strong></td>
+              <td>2025-10-25</td>
+              <td>Comercial del Sur E.I.R.L.</td>
+              <td>F002-0005679</td>
+              <td>12</td>
+              <td>S/ 3,389.83</td>
+              <td>S/ 610.17</td>
+              <td><strong>S/ 4,000.00</strong></td>
+              <td class="text-warning">S/ 2,000.00</td>
+              <td class="text-danger">S/ 2,000.00</td>
+              <td><span class="badge badge-warning">Parcial</span></td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verDetalle('COMP-005')"></button>
+                <button class="btn btn-sm btn-primary" onclick="registrarPago('COMP-005')"></button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-600">
+              <td colspan="5">TOTALES</td>
+              <td>S/ 25,000.00</td>
+              <td>S/ 4,500.00</td>
+              <td><strong>S/ 29,500.00</strong></td>
+              <td class="text-success">S/ 20,000.00</td>
+              <td class="text-danger">S/ 9,500.00</td>
+              <td colspan="2">-</td>
+            </tr>
+          </tfoot>
+        </table>
+      `);
+      
+      $('#formFiltros').on('submit', function(e) {
         e.preventDefault();
-        const errs = Validation.validateForm($(this));
-        if (errs.length) { Notifications.show('Completa el rango de fechas', 'warning'); return; }
-        const params = Object.fromEntries(new FormData(this).entries());
-        const res = await API.get('/reportes/compras', params);
-        if (res.ok) { Notifications.show('Reporte generado', 'success'); }
-        else { Notifications.show('Error al generar reporte', 'danger'); }
+        Notifications.show('Generando reporte de compras por período...', 'info');
+      });
+    }
+    
+    function cargarComprasProveedor() {
+      $('#tituloReporte').text('Compras por Proveedor');
+      $('#tituloTabla').text('Análisis de Compras por Proveedor');
+      
+      const hoy = new Date();
+      const hace30Dias = new Date(hoy.getTime() - (30 * 24 * 60 * 60 * 1000));
+      
+      $('#filtrosContainer').html(`
+        <div class="form-group">
+          <label for="fecha_inicio" class="form-label required">Fecha Inicio</label>
+          <input type="date" id="fecha_inicio" class="input" value="${hace30Dias.toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="fecha_fin" class="form-label required">Fecha Fin</label>
+          <input type="date" id="fecha_fin" class="input" value="${hoy.toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="proveedor_sel" class="form-label">Proveedor Específico</label>
+          <select id="proveedor_sel" class="input">
+            <option value="">Todos</option>
+            <option value="1">Distribuidora Norte S.A.</option>
+            <option value="2">Comercial del Sur E.I.R.L.</option>
+            <option value="3">Alimentos Frescos S.A.C.</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </div>
+      `);
+      
+      $('#resumenContainer').html(`
+        <div class="resumen-card">
+          <div class="resumen-label">Total Proveedores</div>
+          <div class="resumen-value">12</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Total Comprado</div>
+          <div class="resumen-value">S/ 85,450.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Proveedor Principal</div>
+          <div class="resumen-value text-sm">Distribuidora Norte</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Compra Promedio</div>
+          <div class="resumen-value">S/ 1,898.89</div>
+        </div>
+      `);
+      
+      $('#tablaContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>RUC</th>
+              <th>Proveedor</th>
+              <th>N° Compras</th>
+              <th>Total Comprado</th>
+              <th>Total Pagado</th>
+              <th>Deuda Actual</th>
+              <th>Compra Promedio</th>
+              <th>% Participación</th>
+              <th>Último Pedido</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>20123456789</td>
+              <td><strong>Distribuidora Norte S.A.</strong></td>
+              <td>18</td>
+              <td><strong>S/ 35,600.00</strong></td>
+              <td class="text-success">S/ 28,450.00</td>
+              <td class="text-warning">S/ 7,150.00</td>
+              <td>S/ 1,977.78</td>
+              <td><strong>41.7%</strong></td>
+              <td>2025-10-29</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verProveedor(1)"></button>
+                <button class="btn btn-sm btn-primary" onclick="nuevaCompra(1)"></button>
+              </td>
+            </tr>
+            <tr>
+              <td>20987654321</td>
+              <td><strong>Comercial del Sur E.I.R.L.</strong></td>
+              <td>15</td>
+              <td><strong>S/ 28,900.00</strong></td>
+              <td class="text-success">S/ 19,200.00</td>
+              <td class="text-warning">S/ 9,700.00</td>
+              <td>S/ 1,926.67</td>
+              <td><strong>33.8%</strong></td>
+              <td>2025-10-28</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verProveedor(2)"></button>
+                <button class="btn btn-sm btn-primary" onclick="nuevaCompra(2)"></button>
+              </td>
+            </tr>
+            <tr>
+              <td>20456789123</td>
+              <td><strong>Alimentos Frescos S.A.C.</strong></td>
+              <td>12</td>
+              <td><strong>S/ 20,950.00</strong></td>
+              <td class="text-success">S/ 14,690.00</td>
+              <td class="text-warning">S/ 6,260.00</td>
+              <td>S/ 1,745.83</td>
+              <td><strong>24.5%</strong></td>
+              <td>2025-10-27</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verProveedor(3)"></button>
+                <button class="btn btn-sm btn-primary" onclick="nuevaCompra(3)"></button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-600">
+              <td colspan="2">TOTAL</td>
+              <td>45</td>
+              <td><strong>S/ 85,450.00</strong></td>
+              <td class="text-success">S/ 62,340.00</td>
+              <td class="text-warning">S/ 23,110.00</td>
+              <td>S/ 1,898.89</td>
+              <td>100%</td>
+              <td colspan="2">-</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="mt-4">
+          <h3 class="text-lg fw-600 mb-3">Top 10 Productos Más Comprados</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Proveedor Principal</th>
+                <th>Cantidad Comprada</th>
+                <th>Costo Promedio</th>
+                <th>Total Invertido</th>
+                <th>Última Compra</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Arroz Superior 1kg</td>
+                <td>Distribuidora Norte S.A.</td>
+                <td>850 unidades</td>
+                <td>S/ 3.80</td>
+                <td><strong>S/ 3,230.00</strong></td>
+                <td>2025-10-29</td>
+              </tr>
+              <tr>
+                <td>Aceite Primor 1L</td>
+                <td>Comercial del Sur E.I.R.L.</td>
+                <td>420 unidades</td>
+                <td>S/ 8.50</td>
+                <td><strong>S/ 3,570.00</strong></td>
+                <td>2025-10-28</td>
+              </tr>
+              <tr>
+                <td>Azúcar Blanca 1kg</td>
+                <td>Distribuidora Norte S.A.</td>
+                <td>680 unidades</td>
+                <td>S/ 3.50</td>
+                <td><strong>S/ 2,380.00</strong></td>
+                <td>2025-10-26</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `);
+      
+      $('#formFiltros').on('submit', function(e) {
+        e.preventDefault();
+        Notifications.show('Generando reporte por proveedor...', 'info');
+      });
+    }
+    
+    function cargarCuentasPagar() {
+      $('#tituloReporte').text('Cuentas por Pagar');
+      $('#tituloTabla').text('Estado de Deudas con Proveedores');
+      
+      $('#filtrosContainer').html(`
+        <div class="form-group">
+          <label for="proveedor_deuda" class="form-label">Proveedor</label>
+          <select id="proveedor_deuda" class="input">
+            <option value="">Todos</option>
+            <option value="1">Distribuidora Norte S.A.</option>
+            <option value="2">Comercial del Sur E.I.R.L.</option>
+            <option value="3">Alimentos Frescos S.A.C.</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="estado_pago" class="form-label">Estado</label>
+          <select id="estado_pago" class="input">
+            <option value="">Todos</option>
+            <option value="vencido">Vencido</option>
+            <option value="por_vencer">Por Vencer</option>
+            <option value="vigente">Vigente</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="ordenar_deuda" class="form-label">Ordenar por</label>
+          <select id="ordenar_deuda" class="input">
+            <option value="monto">Monto (Mayor a Menor)</option>
+            <option value="fecha">Fecha de Vencimiento</option>
+            <option value="proveedor">Proveedor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </div>
+      `);
+      
+      $('#resumenContainer').html(`
+        <div class="resumen-card">
+          <div class="resumen-label">Total por Pagar</div>
+          <div class="resumen-value text-danger">S/ 23,110.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Deudas Vencidas</div>
+          <div class="resumen-value text-danger">S/ 8,450.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Por Vencer (7 días)</div>
+          <div class="resumen-value text-warning">S/ 6,200.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Vigentes</div>
+          <div class="resumen-value">S/ 8,460.00</div>
+        </div>
+      `);
+      
+      $('#tablaContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>N° Compra</th>
+              <th>Proveedor</th>
+              <th>Fecha Compra</th>
+              <th>Fecha Vencimiento</th>
+              <th>Días</th>
+              <th>Total Factura</th>
+              <th>Pagado</th>
+              <th>Saldo</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table-danger">
+              <td><strong>COMP-008</strong></td>
+              <td>Alimentos Frescos S.A.C.</td>
+              <td>2025-10-01</td>
+              <td><strong>2025-10-16</strong></td>
+              <td class="text-danger">Vencido 13d</td>
+              <td>S/ 5,500.00</td>
+              <td>S/ 0.00</td>
+              <td class="text-danger"><strong>S/ 5,500.00</strong></td>
+              <td><span class="badge badge-danger">Vencido</span></td>
+              <td>
+                <button class="btn btn-sm btn-primary" onclick="registrarPago('COMP-008')">Pagar</button>
+              </td>
+            </tr>
+            <tr class="table-danger">
+              <td><strong>COMP-012</strong></td>
+              <td>Comercial del Sur E.I.R.L.</td>
+              <td>2025-10-05</td>
+              <td><strong>2025-10-20</strong></td>
+              <td class="text-danger">Vencido 9d</td>
+              <td>S/ 3,800.00</td>
+              <td>S/ 850.00</td>
+              <td class="text-danger"><strong>S/ 2,950.00</strong></td>
+              <td><span class="badge badge-danger">Vencido</span></td>
+              <td>
+                <button class="btn btn-sm btn-primary" onclick="registrarPago('COMP-012')">Pagar</button>
+              </td>
+            </tr>
+            <tr class="table-warning">
+              <td><strong>COMP-002</strong></td>
+              <td>Comercial del Sur E.I.R.L.</td>
+              <td>2025-10-28</td>
+              <td><strong>2025-11-02</strong></td>
+              <td class="text-warning">Vence en 4d</td>
+              <td>S/ 7,500.00</td>
+              <td>S/ 3,000.00</td>
+              <td class="text-warning"><strong>S/ 4,500.00</strong></td>
+              <td><span class="badge badge-warning">Por Vencer</span></td>
+              <td>
+                <button class="btn btn-sm btn-primary" onclick="registrarPago('COMP-002')">Pagar</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>COMP-003</strong></td>
+              <td>Alimentos Frescos S.A.C.</td>
+              <td>2025-10-27</td>
+              <td><strong>2025-11-11</strong></td>
+              <td>Vence en 13d</td>
+              <td>S/ 3,000.00</td>
+              <td>S/ 0.00</td>
+              <td class="text-warning"><strong>S/ 3,000.00</strong></td>
+              <td><span class="badge badge-info">Vigente</span></td>
+              <td>
+                <button class="btn btn-sm btn-primary" onclick="registrarPago('COMP-003')">Pagar</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>COMP-005</strong></td>
+              <td>Comercial del Sur E.I.R.L.</td>
+              <td>2025-10-25</td>
+              <td><strong>2025-11-09</strong></td>
+              <td>Vence en 11d</td>
+              <td>S/ 4,000.00</td>
+              <td>S/ 2,000.00</td>
+              <td class="text-warning"><strong>S/ 2,000.00</strong></td>
+              <td><span class="badge badge-info">Vigente</span></td>
+              <td>
+                <button class="btn btn-sm btn-primary" onclick="registrarPago('COMP-005')">Pagar</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>COMP-018</strong></td>
+              <td>Distribuidora Norte S.A.</td>
+              <td>2025-10-20</td>
+              <td><strong>2025-11-04</strong></td>
+              <td>Vence en 6d</td>
+              <td>S/ 6,800.00</td>
+              <td>S/ 1,640.00</td>
+              <td class="text-warning"><strong>S/ 5,160.00</strong></td>
+              <td><span class="badge badge-warning">Por Vencer</span></td>
+              <td>
+                <button class="btn btn-sm btn-primary" onclick="registrarPago('COMP-018')">Pagar</button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-600">
+              <td colspan="5">TOTAL</td>
+              <td>S/ 30,600.00</td>
+              <td>S/ 7,490.00</td>
+              <td class="text-danger"><strong>S/ 23,110.00</strong></td>
+              <td colspan="2">-</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="mt-4">
+          <h3 class="text-lg fw-600 mb-3">Resumen por Proveedor</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Proveedor</th>
+                <th>Facturas Pendientes</th>
+                <th>Total Deuda</th>
+                <th>Vencidas</th>
+                <th>Por Vencer</th>
+                <th>Vigentes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Distribuidora Norte S.A.</strong></td>
+                <td>3</td>
+                <td><strong>S/ 7,150.00</strong></td>
+                <td class="text-danger">S/ 0.00</td>
+                <td class="text-warning">S/ 5,160.00</td>
+                <td>S/ 1,990.00</td>
+              </tr>
+              <tr>
+                <td><strong>Comercial del Sur E.I.R.L.</strong></td>
+                <td>5</td>
+                <td><strong>S/ 9,700.00</strong></td>
+                <td class="text-danger">S/ 2,950.00</td>
+                <td class="text-warning">S/ 4,500.00</td>
+                <td>S/ 2,250.00</td>
+              </tr>
+              <tr>
+                <td><strong>Alimentos Frescos S.A.C.</strong></td>
+                <td>4</td>
+                <td><strong>S/ 6,260.00</strong></td>
+                <td class="text-danger">S/ 5,500.00</td>
+                <td class="text-warning">S/ 0.00</td>
+                <td>S/ 760.00</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="fw-600">
+                <td>TOTAL</td>
+                <td>12</td>
+                <td><strong>S/ 23,110.00</strong></td>
+                <td class="text-danger">S/ 8,450.00</td>
+                <td class="text-warning">S/ 9,660.00</td>
+                <td>S/ 5,000.00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `);
+      
+      $('#formFiltros').on('submit', function(e) {
+        e.preventDefault();
+        Notifications.show('Generando reporte de cuentas por pagar...', 'info');
+      });
+    }
+    
+    function cargarRentabilidad() {
+      $('#tituloReporte').text('Análisis de Rentabilidad');
+      $('#tituloTabla').text('Análisis de Márgenes de Ganancia');
+      
+      const hoy = new Date();
+      const hace30Dias = new Date(hoy.getTime() - (30 * 24 * 60 * 60 * 1000));
+      
+      $('#filtrosContainer').html(`
+        <div class="form-group">
+          <label for="fecha_inicio" class="form-label required">Fecha Inicio</label>
+          <input type="date" id="fecha_inicio" class="input" value="${hace30Dias.toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="fecha_fin" class="form-label required">Fecha Fin</label>
+          <input type="date" id="fecha_fin" class="input" value="${hoy.toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="categoria_rent" class="form-label">Categoría</label>
+          <select id="categoria_rent" class="input">
+            <option value="">Todas</option>
+            <option value="1">Abarrotes</option>
+            <option value="2">Bebidas</option>
+            <option value="3">Lácteos</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </div>
+      `);
+      
+      $('#resumenContainer').html(`
+        <div class="resumen-card">
+          <div class="resumen-label">Costo Total</div>
+          <div class="resumen-value">S/ 85,450.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Ventas Totales</div>
+          <div class="resumen-value">S/ 118,250.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Utilidad Bruta</div>
+          <div class="resumen-value text-success">S/ 32,800.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Margen Promedio</div>
+          <div class="resumen-value text-success">38.4%</div>
+        </div>
+      `);
+      
+      $('#tablaContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Cantidad Comprada</th>
+              <th>Cantidad Vendida</th>
+              <th>Costo Unitario</th>
+              <th>Precio Venta</th>
+              <th>Costo Total</th>
+              <th>Venta Total</th>
+              <th>Utilidad</th>
+              <th>Margen %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Arroz Superior 1kg</td>
+              <td>Abarrotes</td>
+              <td>850</td>
+              <td>780</td>
+              <td>S/ 3.80</td>
+              <td>S/ 4.50</td>
+              <td>S/ 3,230.00</td>
+              <td>S/ 3,510.00</td>
+              <td class="text-success"><strong>S/ 546.00</strong></td>
+              <td class="text-success"><strong>18.4%</strong></td>
+            </tr>
+            <tr>
+              <td>Aceite Primor 1L</td>
+              <td>Abarrotes</td>
+              <td>420</td>
+              <td>385</td>
+              <td>S/ 8.50</td>
+              <td>S/ 10.00</td>
+              <td>S/ 3,570.00</td>
+              <td>S/ 3,850.00</td>
+              <td class="text-success"><strong>S/ 577.50</strong></td>
+              <td class="text-success"><strong>17.6%</strong></td>
+            </tr>
+            <tr>
+              <td>Coca Cola 1.5L</td>
+              <td>Bebidas</td>
+              <td>650</td>
+              <td>625</td>
+              <td>S/ 4.20</td>
+              <td>S/ 5.50</td>
+              <td>S/ 2,730.00</td>
+              <td>S/ 3,437.50</td>
+              <td class="text-success"><strong>S/ 812.50</strong></td>
+              <td class="text-success"><strong>31.0%</strong></td>
+            </tr>
+            <tr>
+              <td>Leche Gloria Evaporada</td>
+              <td>Lácteos</td>
+              <td>580</td>
+              <td>545</td>
+              <td>S/ 3.20</td>
+              <td>S/ 3.80</td>
+              <td>S/ 1,856.00</td>
+              <td>S/ 2,071.00</td>
+              <td class="text-success"><strong>S/ 327.00</strong></td>
+              <td class="text-success"><strong>18.8%</strong></td>
+            </tr>
+            <tr>
+              <td>Azúcar Blanca 1kg</td>
+              <td>Abarrotes</td>
+              <td>680</td>
+              <td>640</td>
+              <td>S/ 3.50</td>
+              <td>S/ 4.20</td>
+              <td>S/ 2,380.00</td>
+              <td>S/ 2,688.00</td>
+              <td class="text-success"><strong>S/ 448.00</strong></td>
+              <td class="text-success"><strong>20.0%</strong></td>
+            </tr>
+            <tr>
+              <td>Detergente Ariel 1kg</td>
+              <td>Limpieza</td>
+              <td>320</td>
+              <td>295</td>
+              <td>S/ 12.00</td>
+              <td>S/ 15.00</td>
+              <td>S/ 3,840.00</td>
+              <td>S/ 4,425.00</td>
+              <td class="text-success"><strong>S/ 885.00</strong></td>
+              <td class="text-success"><strong>25.0%</strong></td>
+            </tr>
+            <tr>
+              <td>Galletas Soda 180g</td>
+              <td>Snacks</td>
+              <td>890</td>
+              <td>856</td>
+              <td>S/ 1.80</td>
+              <td>S/ 2.50</td>
+              <td>S/ 1,602.00</td>
+              <td>S/ 2,140.00</td>
+              <td class="text-success"><strong>S/ 599.20</strong></td>
+              <td class="text-success"><strong>38.9%</strong></td>
+            </tr>
+            <tr>
+              <td>Papel Higiénico Elite 4un</td>
+              <td>Limpieza</td>
+              <td>450</td>
+              <td>425</td>
+              <td>S/ 5.50</td>
+              <td>S/ 7.50</td>
+              <td>S/ 2,475.00</td>
+              <td>S/ 3,187.50</td>
+              <td class="text-success"><strong>S/ 850.00</strong></td>
+              <td class="text-success"><strong>28.8%</strong></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-600">
+              <td colspan="6">TOTALES</td>
+              <td>S/ 21,683.00</td>
+              <td>S/ 25,309.00</td>
+              <td class="text-success"><strong>S/ 5,045.20</strong></td>
+              <td class="text-success"><strong>23.3%</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="mt-4">
+          <h3 class="text-lg fw-600 mb-3">Rentabilidad por Categoría</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Categoría</th>
+                <th>Productos</th>
+                <th>Costo Total</th>
+                <th>Venta Total</th>
+                <th>Utilidad</th>
+                <th>Margen %</th>
+                <th>Rotación</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Abarrotes</strong></td>
+                <td>85</td>
+                <td>S/ 32,450.00</td>
+                <td>S/ 42,680.00</td>
+                <td class="text-success">S/ 10,230.00</td>
+                <td class="text-success"><strong>31.5%</strong></td>
+                <td>Alta</td>
+              </tr>
+              <tr>
+                <td><strong>Bebidas</strong></td>
+                <td>45</td>
+                <td>S/ 18,650.00</td>
+                <td>S/ 24,120.00</td>
+                <td class="text-success">S/ 5,470.00</td>
+                <td class="text-success"><strong>29.3%</strong></td>
+                <td>Alta</td>
+              </tr>
+              <tr>
+                <td><strong>Lácteos</strong></td>
+                <td>32</td>
+                <td>S/ 12,340.00</td>
+                <td>S/ 16,850.00</td>
+                <td class="text-success">S/ 4,510.00</td>
+                <td class="text-success"><strong>36.6%</strong></td>
+                <td>Media</td>
+              </tr>
+              <tr>
+                <td><strong>Limpieza</strong></td>
+                <td>28</td>
+                <td>S/ 14,560.00</td>
+                <td>S/ 19,280.00</td>
+                <td class="text-success">S/ 4,720.00</td>
+                <td class="text-success"><strong>32.4%</strong></td>
+                <td>Media</td>
+              </tr>
+              <tr>
+                <td><strong>Snacks</strong></td>
+                <td>38</td>
+                <td>S/ 7,450.00</td>
+                <td>S/ 15,320.00</td>
+                <td class="text-success">S/ 7,870.00</td>
+                <td class="text-success"><strong>105.6%</strong></td>
+                <td>Muy Alta</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="fw-600">
+                <td>TOTAL</td>
+                <td>228</td>
+                <td>S/ 85,450.00</td>
+                <td>S/ 118,250.00</td>
+                <td class="text-success"><strong>S/ 32,800.00</strong></td>
+                <td class="text-success"><strong>38.4%</strong></td>
+                <td>-</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `);
+      
+      $('#formFiltros').on('submit', function(e) {
+        e.preventDefault();
+        Notifications.show('Generando análisis de rentabilidad...', 'info');
+      });
+    }
+    
+    function verDetalle(compra) {
+      Notifications.show(`Cargando detalle de ${compra}...`, 'info');
+      // Redirigir a página de detalle
+    }
+    
+    function registrarPago(compra) {
+      Notifications.show(`Abriendo formulario de pago para ${compra}...`, 'info');
+      // Abrir modal o redirigir a página de pagos
+    }
+    
+    function imprimirCompra(compra) {
+      Notifications.show(`Preparando impresión de ${compra}...`, 'info');
+      window.print();
+    }
+    
+    function verProveedor(id) {
+      Notifications.show(`Cargando información del proveedor...`, 'info');
+      // Redirigir a página del proveedor
+    }
+    
+    function nuevaCompra(proveedorId) {
+      window.location.href = '../compras/compras-crear.html?proveedor=' + proveedorId;
+    }
+    
+    function exportarExcel() {
+      Notifications.show('Exportando reporte a Excel...', 'success');
+    }
+    
+    function exportarPDF() {
+      Notifications.show('Exportando reporte a PDF...', 'success');
+    }
+    
+    function imprimirReporte() {
+      window.print();
+    }
+    
+    // Buscador en tiempo real
+    $('#searchTable').on('keyup', function() {
+      const value = $(this).val().toLowerCase();
+      $('#tablaContainer tbody tr').filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
       });
     });
   </script>

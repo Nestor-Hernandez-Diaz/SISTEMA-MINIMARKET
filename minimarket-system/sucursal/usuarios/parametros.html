@@ -3,39 +3,233 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sucursal - Parámetros del Sistema</title>
+  <title>Sucursal - Parámetros de Usuarios</title>
   <link rel="stylesheet" href="../assets/css/variables.css" />
   <link rel="stylesheet" href="../assets/css/layout.css" />
   <link rel="stylesheet" href="../assets/css/components.css" />
   <link rel="stylesheet" href="../assets/css/pages.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="/minimarket-system/shared/js/utils.js"></script>
+  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="/minimarket-system/shared/js/notifications.js"></script>
-  <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
   <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/forms.js"></script>
 </head>
-<body class="page usuarios-page">
+<body class="page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Parámetros</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="usuarios.html">Usuarios</a>
-        <a class="btn" href="usuarios-crear.html">Crear</a>
-        <a class="btn" href="usuarios-editar.html">Editar</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <h1 class="text-xl fw-600">Parámetros de Usuarios</h1>
+        <p class="text-muted text-sm">Configura las políticas de seguridad y acceso del sistema</p>
       </div>
-      <div id="tableContainer"></div>
+
+      <!-- Configuración de Sesión -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Configuración de Sesión</h2>
+        </div>
+        <div class="card-body">
+          <form id="formSesion">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="sesion_timeout" class="form-label required">Tiempo de sesión (minutos)</label>
+                <input 
+                  type="number" 
+                  id="sesion_timeout" 
+                  name="sesion_timeout" 
+                  class="input" 
+                  value="30" 
+                  min="5" 
+                  max="480" 
+                  required 
+                />
+                <small class="form-help">Tiempo antes de cerrar sesión por inactividad</small>
+              </div>
+
+              <div class="form-group">
+                <label for="intentos_login" class="form-label required">Intentos de login permitidos</label>
+                <input 
+                  type="number" 
+                  id="intentos_login" 
+                  name="intentos_login" 
+                  class="input" 
+                  value="3" 
+                  min="1" 
+                  max="10" 
+                  required 
+                />
+                <small class="form-help">Intentos fallidos antes de bloquear cuenta</small>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Políticas de Contraseña -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Políticas de Contraseña</h2>
+        </div>
+        <div class="card-body">
+          <form id="formPassword">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="longitud_password" class="form-label required">Longitud mínima de contraseña</label>
+                <input 
+                  type="number" 
+                  id="longitud_password" 
+                  name="longitud_password" 
+                  class="input" 
+                  value="8" 
+                  min="6" 
+                  max="20" 
+                  required 
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="dias_cambio_password" class="form-label required">Días para cambio obligatorio</label>
+                <input 
+                  type="number" 
+                  id="dias_cambio_password" 
+                  name="dias_cambio_password" 
+                  class="input" 
+                  value="90" 
+                  min="0" 
+                  max="365" 
+                  required 
+                />
+                <small class="form-help">0 = sin caducidad</small>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label fw-600 mb-3">Requisitos de contraseña</label>
+              
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="requerir_mayuscula" name="requerir_mayuscula" checked />
+                  <span>Requerir al menos una letra mayúscula (A-Z)</span>
+                </label>
+              </div>
+
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="requerir_minuscula" name="requerir_minuscula" checked />
+                  <span>Requerir al menos una letra minúscula (a-z)</span>
+                </label>
+              </div>
+
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="requerir_numero" name="requerir_numero" checked />
+                  <span>Requerir al menos un número (0-9)</span>
+                </label>
+              </div>
+
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="requerir_especial" name="requerir_especial" />
+                  <span>Requerir caracteres especiales (@, #, $, %, etc.)</span>
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Configuración de Notificaciones -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Notificaciones</h2>
+        </div>
+        <div class="card-body">
+          <form id="formNotificaciones">
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="notif_nuevo_usuario" name="notif_nuevo_usuario" checked />
+                <span>Notificar cuando se crea un nuevo usuario</span>
+              </label>
+            </div>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="notif_cambio_password" name="notif_cambio_password" checked />
+                <span>Notificar cambios de contraseña</span>
+              </label>
+            </div>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="notif_login_fallido" name="notif_login_fallido" checked />
+                <span>Notificar intentos de login fallidos</span>
+              </label>
+            </div>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="notif_cuenta_bloqueada" name="notif_cuenta_bloqueada" checked />
+                <span>Notificar cuando una cuenta es bloqueada</span>
+              </label>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="history.back()">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" onclick="guardarParametros()">
+          Guardar Todos los Parámetros
+        </button>
+      </div>
     </div>
   </main>
+
   <script>
     $(function(){ 
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
+      if (!Auth.requireRole(['sucursal', 'admin'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
     });
-    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html');
+    
+    function guardarParametros() {
+      const parametros = {
+        sesion: {
+          timeout: $('#sesion_timeout').val(),
+          intentos_login: $('#intentos_login').val()
+        },
+        password: {
+          longitud_minima: $('#longitud_password').val(),
+          dias_cambio: $('#dias_cambio_password').val(),
+          requerir_mayuscula: $('#requerir_mayuscula').is(':checked'),
+          requerir_minuscula: $('#requerir_minuscula').is(':checked'),
+          requerir_numero: $('#requerir_numero').is(':checked'),
+          requerir_especial: $('#requerir_especial').is(':checked')
+        },
+        notificaciones: {
+          nuevo_usuario: $('#notif_nuevo_usuario').is(':checked'),
+          cambio_password: $('#notif_cambio_password').is(':checked'),
+          login_fallido: $('#notif_login_fallido').is(':checked'),
+          cuenta_bloqueada: $('#notif_cuenta_bloqueada').is(':checked')
+        }
+      };
+      
+      // Aquí iría la llamada a la API
+      console.log('Parámetros a guardar:', parametros);
+      
+      Notifications.show('Parámetros guardados exitosamente', 'success');
+    }
   </script>
 </body>
 </html>

@@ -19,24 +19,138 @@
 <body class="page usuarios-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Usuarios</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="usuarios-crear.html">Crear Usuario</a>
-        <a class="btn" href="usuarios-editar.html">Editar Usuario</a>
-        <a class="btn" href="parametros.html">Parámetros</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <h1 class="text-xl fw-600">Gestión de Usuarios</h1>
+        <p class="text-muted text-sm">Administra los usuarios del sistema</p>
       </div>
-      <div id="tableContainer"></div>
+
+      <div class="actions mb-4">
+        <a class="btn btn-primary" href="usuarios-crear.html">
+          <span></span> Nuevo Usuario
+        </a>
+        <a class="btn btn-secondary" href="parametros.html">
+          <span></span> Parámetros
+        </a>
+        <button class="btn" onclick="location.reload()">
+          <span></span> Actualizar
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Lista de Usuarios</h2>
+        </div>
+        <div class="card-body">
+          <div class="table-filters mb-3">
+            <input type="text" id="searchUsuarios" class="input" placeholder=" Buscar por nombre, usuario o email..." />
+          </div>
+
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Usuario</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Último Acceso</th>
+                  <th class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="usuariosTableBody">
+                <tr>
+                  <td>1</td>
+                  <td><strong>Juan Pérez García</strong></td>
+                  <td>jperez</td>
+                  <td>juan@email.com</td>
+                  <td><span class="badge badge-info">Administrador</span></td>
+                  <td><span class="badge badge-success">Activo</span></td>
+                  <td>2025-10-29 10:30</td>
+                  <td class="text-center">
+                    <div class="table-actions">
+                      <button class="btn btn-sm btn-primary" onclick="editarUsuario(1)" title="Editar"></button>
+                      <button class="btn btn-sm btn-danger" onclick="eliminarUsuario(1)" title="Eliminar"></button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td><strong>María García López</strong></td>
+                  <td>mgarcia</td>
+                  <td>maria@email.com</td>
+                  <td><span class="badge badge-warning">Cajero</span></td>
+                  <td><span class="badge badge-success">Activo</span></td>
+                  <td>2025-10-29 09:15</td>
+                  <td class="text-center">
+                    <div class="table-actions">
+                      <button class="btn btn-sm btn-primary" onclick="editarUsuario(2)" title="Editar"></button>
+                      <button class="btn btn-sm btn-danger" onclick="eliminarUsuario(2)" title="Eliminar"></button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td><strong>Carlos López Ruiz</strong></td>
+                  <td>clopez</td>
+                  <td>carlos@email.com</td>
+                  <td><span class="badge badge-secondary">Inventario</span></td>
+                  <td><span class="badge badge-danger">Inactivo</span></td>
+                  <td>2025-10-25 16:45</td>
+                  <td class="text-center">
+                    <div class="table-actions">
+                      <button class="btn btn-sm btn-primary" onclick="editarUsuario(3)" title="Editar"></button>
+                      <button class="btn btn-sm btn-danger" onclick="eliminarUsuario(3)" title="Eliminar"></button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination mt-4">
+            <button class="btn btn-sm">Anterior</button>
+            <span class="text-sm text-muted mx-3">Página 1 de 1</span>
+            <button class="btn btn-sm">Siguiente</button>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
   <script>
     $(function(){ 
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
+      if (!Auth.requireRole(['sucursal', 'admin'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
     });
-    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html');
+
+    function editarUsuario(id) {
+      window.location.href = `usuarios-editar.html?id=${id}`;
+    }
+
+    function eliminarUsuario(id) {
+      if (confirm('¿Está seguro de eliminar este usuario?')) {
+        Notifications.show('Usuario eliminado correctamente', 'success');
+        setTimeout(() => location.reload(), 1500);
+      }
+    }
+
+    // Buscador
+    $('#searchUsuarios').on('keyup', function() {
+      const value = $(this).val().toLowerCase();
+      $('#usuariosTableBody tr').filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+      });
+    });
   </script>
 </body>
 </html>

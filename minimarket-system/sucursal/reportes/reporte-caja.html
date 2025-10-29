@@ -13,49 +13,1091 @@
   <script src="/minimarket-system/shared/js/notifications.js"></script>
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
-  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="../assets/js/main.js"></script>
 </head>
 <body class="page reportes-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Reporte de Caja</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="reportes.html">Reportes</a>
-        <a class="btn" href="reporte-ventas.html">Ventas</a>
-        <a class="btn" href="reporte-compras.html">Compras</a>
-        <a class="btn" href="reporte-inventario.html">Inventario</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <h1 class="text-xl fw-600"><span id="tituloReporte">Reporte de Caja</span></h1>
+        <p class="text-muted text-sm">Control y análisis de movimientos de caja</p>
       </div>
-      <form id="formCaja" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
-        <div>
-          <label class="label" for="fecha">Fecha</label>
-          <input class="input" id="fecha" name="fecha" type="date" data-validate="required" />
+
+      <!-- Selector de Tipo de Reporte -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Tipo de Reporte</h2>
         </div>
-        <div>
-          <label class="label" for="turno">Turno</label>
-          <input class="input" id="turno" name="turno" data-validate="required|min:2" />
+        <div class="card-body">
+          <div class="form-group">
+            <label for="tipoReporte" class="form-label">Seleccione el tipo de reporte</label>
+            <select id="tipoReporte" class="input" onchange="cambiarTipoReporte(this.value)">
+              <option value="diaria">Caja Diaria</option>
+              <option value="flujo">Flujo de Efectivo</option>
+              <option value="arqueo">Arqueo de Caja</option>
+              <option value="gastos">Gastos Operativos</option>
+            </select>
+          </div>
         </div>
-        <div class="col-span-2">
-          <button class="btn btn-primary" type="submit">Generar</button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Filtros de Búsqueda</h2>
         </div>
-      </form>
+        <div class="card-body">
+          <form id="formFiltros">
+            <div class="form-row" id="filtrosContainer">
+              <!-- Los filtros se cargan dinámicamente -->
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Resumen -->
+      <div class="reporte-resumen mb-4" id="resumenContainer">
+        <!-- El resumen se carga dinámicamente -->
+      </div>
+
+      <!-- Tabla de Resultados -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-lg fw-600"><span id="tituloTabla">Detalle de Caja</span></h2>
+        </div>
+        <div class="card-body">
+          <div class="table-actions mb-3">
+            <input type="text" id="searchTable" class="input" placeholder="Buscar..." style="max-width: 300px;" />
+            <button class="btn btn-success" onclick="exportarExcel()">
+              Exportar Excel
+            </button>
+            <button class="btn btn-secondary" onclick="exportarPDF()">
+              Exportar PDF
+            </button>
+            <button class="btn" onclick="imprimirReporte()">
+              Imprimir
+            </button>
+          </div>
+
+          <div class="table-responsive" id="tablaContainer">
+            <!-- La tabla se carga dinámicamente -->
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
+  <!-- Modal Arqueo de Caja -->
+  <div id="modalArqueo" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h2 class="text-lg fw-600">Realizar Arqueo de Caja</h2>
+        <button class="modal-close" onclick="cerrarModalArqueo()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="formArqueo">
+          <div class="form-group">
+            <label class="form-label">Fecha de Arqueo</label>
+            <input type="date" id="fecha_arqueo" class="input" value="${new Date().toISOString().split('T')[0]}" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Turno</label>
+            <select id="turno_arqueo" class="input" required>
+              <option value="mañana">Mañana</option>
+              <option value="tarde">Tarde</option>
+              <option value="noche">Noche</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label fw-600">Conteo de Billetes y Monedas</label>
+          </div>
+
+          <div class="arqueo-denominacion">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label text-sm">Billetes S/ 200</label>
+                <input type="number" class="input" id="b200" min="0" value="0" onchange="calcularArqueo()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label text-sm">Billetes S/ 100</label>
+                <input type="number" class="input" id="b100" min="0" value="0" onchange="calcularArqueo()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label text-sm">Billetes S/ 50</label>
+                <input type="number" class="input" id="b50" min="0" value="0" onchange="calcularArqueo()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label text-sm">Billetes S/ 20</label>
+                <input type="number" class="input" id="b20" min="0" value="0" onchange="calcularArqueo()" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label text-sm">Billetes S/ 10</label>
+                <input type="number" class="input" id="b10" min="0" value="0" onchange="calcularArqueo()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label text-sm">Monedas S/ 5</label>
+                <input type="number" class="input" id="m5" min="0" value="0" onchange="calcularArqueo()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label text-sm">Monedas S/ 2</label>
+                <input type="number" class="input" id="m2" min="0" value="0" onchange="calcularArqueo()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label text-sm">Monedas S/ 1</label>
+                <input type="number" class="input" id="m1" min="0" value="0" onchange="calcularArqueo()" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label text-sm">Monedas S/ 0.50</label>
+                <input type="number" class="input" id="m050" min="0" value="0" onchange="calcularArqueo()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label text-sm">Monedas S/ 0.20</label>
+                <input type="number" class="input" id="m020" min="0" value="0" onchange="calcularArqueo()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label text-sm">Monedas S/ 0.10</label>
+                <input type="number" class="input" id="m010" min="0" value="0" onchange="calcularArqueo()" />
+              </div>
+            </div>
+          </div>
+
+          <div class="alert alert-info mt-3">
+            <strong>Total Contado:</strong> <span id="totalContado" class="fw-600">S/ 0.00</span>
+          </div>
+
+          <div class="alert alert-warning mt-2">
+            <strong>Total Sistema:</strong> <span class="fw-600">S/ 2,450.00</span><br>
+            <strong>Diferencia:</strong> <span id="diferencia" class="fw-600">S/ 0.00</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Observaciones</label>
+            <textarea id="observaciones_arqueo" class="input" rows="3" placeholder="Ingrese observaciones sobre el arqueo..."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalArqueo()">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar Arqueo</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script>
-    $(function(){
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
-      $('#formCaja').on('submit', async function(e){
+    let tipoReporte = 'diaria';
+    
+    $(function(){ 
+      if (!Auth.requireRole(['sucursal', 'admin', 'cajero'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
+      
+      // Obtener tipo desde URL si existe
+      const urlParams = new URLSearchParams(window.location.search);
+      const tipoParam = urlParams.get('tipo');
+      if (tipoParam) {
+        tipoReporte = tipoParam;
+        $('#tipoReporte').val(tipoParam);
+      }
+      
+      cargarReporte(tipoReporte);
+    });
+    
+    function cambiarTipoReporte(tipo) {
+      tipoReporte = tipo;
+      cargarReporte(tipo);
+    }
+    
+    function cargarReporte(tipo) {
+      switch(tipo) {
+        case 'diaria':
+          cargarCajaDiaria();
+          break;
+        case 'flujo':
+          cargarFlujoEfectivo();
+          break;
+        case 'arqueo':
+          cargarArqueoCaja();
+          break;
+        case 'gastos':
+          cargarGastos();
+          break;
+        default:
+          cargarCajaDiaria();
+      }
+    }
+    
+    function cargarCajaDiaria() {
+      $('#tituloReporte').text('Caja Diaria');
+      $('#tituloTabla').text('Movimientos de Caja del Día');
+      
+      $('#filtrosContainer').html(`
+        <div class="form-group">
+          <label for="fecha" class="form-label required">Fecha</label>
+          <input type="date" id="fecha" class="input" value="${new Date().toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="cajero" class="form-label">Cajero</label>
+          <select id="cajero" class="input">
+            <option value="">Todos los cajeros</option>
+            <option value="1">Juan Pérez</option>
+            <option value="2">María García</option>
+            <option value="3">Carlos López</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="turno" class="form-label">Turno</label>
+          <select id="turno" class="input">
+            <option value="">Todos</option>
+            <option value="mañana">Mañana</option>
+            <option value="tarde">Tarde</option>
+            <option value="noche">Noche</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </div>
+      `);
+      
+      $('#resumenContainer').html(`
+        <div class="resumen-card">
+          <div class="resumen-label">Saldo Inicial</div>
+          <div class="resumen-value">S/ 500.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Total Ingresos</div>
+          <div class="resumen-value text-success">+S/ 2,450.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Total Egresos</div>
+          <div class="resumen-value text-danger">-S/ 380.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Saldo Final</div>
+          <div class="resumen-value text-primary">S/ 2,570.00</div>
+        </div>
+      `);
+      
+      $('#tablaContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Tipo</th>
+              <th>Concepto</th>
+              <th>Referencia</th>
+              <th>Ingreso</th>
+              <th>Egreso</th>
+              <th>Saldo</th>
+              <th>Cajero</th>
+              <th>Método</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table-info">
+              <td>08:00:00</td>
+              <td><span class="badge badge-info">Apertura</span></td>
+              <td>Apertura de Caja</td>
+              <td>CAJA-001</td>
+              <td><strong>S/ 500.00</strong></td>
+              <td>-</td>
+              <td><strong>S/ 500.00</strong></td>
+              <td>Juan Pérez</td>
+              <td>Efectivo</td>
+            </tr>
+            <tr>
+              <td>08:30:15</td>
+              <td><span class="badge badge-success">Ingreso</span></td>
+              <td>Venta</td>
+              <td>V-00001</td>
+              <td class="text-success"><strong>S/ 50.00</strong></td>
+              <td>-</td>
+              <td><strong>S/ 550.00</strong></td>
+              <td>Juan Pérez</td>
+              <td>Efectivo</td>
+            </tr>
+            <tr>
+              <td>09:15:42</td>
+              <td><span class="badge badge-success">Ingreso</span></td>
+              <td>Venta</td>
+              <td>V-00002</td>
+              <td class="text-success"><strong>S/ 100.00</strong></td>
+              <td>-</td>
+              <td><strong>S/ 650.00</strong></td>
+              <td>María García</td>
+              <td>Tarjeta</td>
+            </tr>
+            <tr>
+              <td>10:20:30</td>
+              <td><span class="badge badge-danger">Egreso</span></td>
+              <td>Gasto - Servicios</td>
+              <td>GAS-001</td>
+              <td>-</td>
+              <td class="text-danger"><strong>S/ 150.00</strong></td>
+              <td><strong>S/ 500.00</strong></td>
+              <td>Juan Pérez</td>
+              <td>Efectivo</td>
+            </tr>
+            <tr>
+              <td>11:45:18</td>
+              <td><span class="badge badge-success">Ingreso</span></td>
+              <td>Venta</td>
+              <td>V-00003</td>
+              <td class="text-success"><strong>S/ 75.50</strong></td>
+              <td>-</td>
+              <td><strong>S/ 575.50</strong></td>
+              <td>María García</td>
+              <td>Efectivo</td>
+            </tr>
+            <tr>
+              <td>12:30:25</td>
+              <td><span class="badge badge-success">Ingreso</span></td>
+              <td>Venta</td>
+              <td>V-00004</td>
+              <td class="text-success"><strong>S/ 120.00</strong></td>
+              <td>-</td>
+              <td><strong>S/ 695.50</strong></td>
+              <td>Juan Pérez</td>
+              <td>Yape</td>
+            </tr>
+            <tr>
+              <td>14:15:40</td>
+              <td><span class="badge badge-danger">Egreso</span></td>
+              <td>Gasto - Compra Menor</td>
+              <td>GAS-002</td>
+              <td>-</td>
+              <td class="text-danger"><strong>S/ 80.00</strong></td>
+              <td><strong>S/ 615.50</strong></td>
+              <td>Carlos López</td>
+              <td>Efectivo</td>
+            </tr>
+            <tr>
+              <td>15:30:12</td>
+              <td><span class="badge badge-success">Ingreso</span></td>
+              <td>Venta</td>
+              <td>V-00005</td>
+              <td class="text-success"><strong>S/ 200.00</strong></td>
+              <td>-</td>
+              <td><strong>S/ 815.50</strong></td>
+              <td>María García</td>
+              <td>Tarjeta</td>
+            </tr>
+            <tr>
+              <td>16:45:33</td>
+              <td><span class="badge badge-success">Ingreso</span></td>
+              <td>Venta</td>
+              <td>V-00006</td>
+              <td class="text-success"><strong>S/ 85.00</strong></td>
+              <td>-</td>
+              <td><strong>S/ 900.50</strong></td>
+              <td>Juan Pérez</td>
+              <td>Efectivo</td>
+            </tr>
+            <tr>
+              <td>17:20:15</td>
+              <td><span class="badge badge-danger">Egreso</span></td>
+              <td>Retiro de Efectivo</td>
+              <td>RET-001</td>
+              <td>-</td>
+              <td class="text-danger"><strong>S/ 150.00</strong></td>
+              <td><strong>S/ 750.50</strong></td>
+              <td>Juan Pérez</td>
+              <td>Efectivo</td>
+            </tr>
+            <tr>
+              <td>18:30:45</td>
+              <td><span class="badge badge-success">Ingreso</span></td>
+              <td>Venta</td>
+              <td>V-00007</td>
+              <td class="text-success"><strong>S/ 95.50</strong></td>
+              <td>-</td>
+              <td><strong>S/ 846.00</strong></td>
+              <td>Carlos López</td>
+              <td>Efectivo</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-600" style="background-color: #f8fafc;">
+              <td colspan="4">TOTALES DEL DÍA</td>
+              <td class="text-success"><strong>S/ 2,450.00</strong></td>
+              <td class="text-danger"><strong>S/ 380.00</strong></td>
+              <td><strong>S/ 2,570.00</strong></td>
+              <td colspan="2">-</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="mt-4">
+          <h3 class="text-lg fw-600 mb-3">Resumen por Método de Pago</h3>
+          <div class="form-row">
+            <div class="col-md-3">
+              <div class="card">
+                <div class="card-body text-center">
+                  <div class="text-sm text-muted">Efectivo</div>
+                  <div class="text-xl fw-600 text-success">S/ 1,210.00</div>
+                  <div class="text-sm text-muted">49.4%</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card">
+                <div class="card-body text-center">
+                  <div class="text-sm text-muted">Tarjeta</div>
+                  <div class="text-xl fw-600 text-info">S/ 925.00</div>
+                  <div class="text-sm text-muted">37.8%</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card">
+                <div class="card-body text-center">
+                  <div class="text-sm text-muted">Yape/Plin</div>
+                  <div class="text-xl fw-600 text-primary">S/ 315.00</div>
+                  <div class="text-sm text-muted">12.8%</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card">
+                <div class="card-body text-center">
+                  <div class="text-sm text-muted">Total</div>
+                  <div class="text-xl fw-600">S/ 2,450.00</div>
+                  <div class="text-sm text-muted">100%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+      
+      $('#formFiltros').on('submit', function(e) {
         e.preventDefault();
-        const errs = Validation.validateForm($(this));
-        if (errs.length) { Notifications.show('Completa los filtros', 'warning'); return; }
-        const params = Object.fromEntries(new FormData(this).entries());
-        const res = await API.get('/reportes/caja', params);
-        if (res.ok) { Notifications.show('Reporte generado', 'success'); }
-        else { Notifications.show('Error al generar reporte', 'danger'); }
+        Notifications.show('Generando reporte de caja diaria...', 'info');
+      });
+    }
+    
+    function cargarFlujoEfectivo() {
+      $('#tituloReporte').text('Flujo de Efectivo');
+      $('#tituloTabla').text('Análisis de Ingresos y Egresos');
+      
+      const hoy = new Date();
+      const hace30Dias = new Date(hoy.getTime() - (30 * 24 * 60 * 60 * 1000));
+      
+      $('#filtrosContainer').html(`
+        <div class="form-group">
+          <label for="fecha_inicio" class="form-label required">Fecha Inicio</label>
+          <input type="date" id="fecha_inicio" class="input" value="${hace30Dias.toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="fecha_fin" class="form-label required">Fecha Fin</label>
+          <input type="date" id="fecha_fin" class="input" value="${hoy.toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="tipo_flujo" class="form-label">Tipo</label>
+          <select id="tipo_flujo" class="input">
+            <option value="">Todos</option>
+            <option value="ingreso">Solo Ingresos</option>
+            <option value="egreso">Solo Egresos</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </div>
+      `);
+      
+      $('#resumenContainer').html(`
+        <div class="resumen-card">
+          <div class="resumen-label">Total Ingresos</div>
+          <div class="resumen-value text-success">S/ 72,450.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Total Egresos</div>
+          <div class="resumen-value text-danger">S/ 48,320.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Flujo Neto</div>
+          <div class="resumen-value text-primary">S/ 24,130.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Promedio Diario</div>
+          <div class="resumen-value">S/ 804.33</div>
+        </div>
+      `);
+      
+      $('#tablaContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Concepto</th>
+              <th>Ingresos</th>
+              <th>Egresos</th>
+              <th>Flujo Neto</th>
+              <th>Acumulado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2025-10-29</td>
+              <td>Operaciones del día</td>
+              <td class="text-success"><strong>S/ 2,450.00</strong></td>
+              <td class="text-danger"><strong>S/ 1,680.00</strong></td>
+              <td class="text-primary"><strong>S/ 770.00</strong></td>
+              <td><strong>S/ 24,130.00</strong></td>
+            </tr>
+            <tr>
+              <td>2025-10-28</td>
+              <td>Operaciones del día</td>
+              <td class="text-success"><strong>S/ 2,890.00</strong></td>
+              <td class="text-danger"><strong>S/ 1,950.00</strong></td>
+              <td class="text-primary"><strong>S/ 940.00</strong></td>
+              <td><strong>S/ 23,360.00</strong></td>
+            </tr>
+            <tr>
+              <td>2025-10-27</td>
+              <td>Operaciones del día</td>
+              <td class="text-success"><strong>S/ 2,120.00</strong></td>
+              <td class="text-danger"><strong>S/ 1,420.00</strong></td>
+              <td class="text-primary"><strong>S/ 700.00</strong></td>
+              <td><strong>S/ 22,420.00</strong></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-600">
+              <td colspan="2">TOTAL PERÍODO</td>
+              <td class="text-success"><strong>S/ 72,450.00</strong></td>
+              <td class="text-danger"><strong>S/ 48,320.00</strong></td>
+              <td class="text-primary"><strong>S/ 24,130.00</strong></td>
+              <td>-</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="mt-4">
+          <h3 class="text-lg fw-600 mb-3">Desglose de Ingresos</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th>Monto</th>
+                <th>% del Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ventas en Efectivo</td>
+                <td class="text-success"><strong>S/ 42,680.00</strong></td>
+                <td>58.9%</td>
+              </tr>
+              <tr>
+                <td>Ventas con Tarjeta</td>
+                <td class="text-success"><strong>S/ 24,120.00</strong></td>
+                <td>33.3%</td>
+              </tr>
+              <tr>
+                <td>Ventas Yape/Plin</td>
+                <td class="text-success"><strong>S/ 5,650.00</strong></td>
+                <td>7.8%</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3 class="text-lg fw-600 mb-3 mt-4">Desglose de Egresos</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th>Monto</th>
+                <th>% del Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Compras a Proveedores</td>
+                <td class="text-danger"><strong>S/ 32,450.00</strong></td>
+                <td>67.2%</td>
+              </tr>
+              <tr>
+                <td>Gastos Operativos</td>
+                <td class="text-danger"><strong>S/ 8,920.00</strong></td>
+                <td>18.5%</td>
+              </tr>
+              <tr>
+                <td>Servicios</td>
+                <td class="text-danger"><strong>S/ 4,680.00</strong></td>
+                <td>9.7%</td>
+              </tr>
+              <tr>
+                <td>Salarios</td>
+                <td class="text-danger"><strong>S/ 2,270.00</strong></td>
+                <td>4.6%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `);
+      
+      $('#formFiltros').on('submit', function(e) {
+        e.preventDefault();
+        Notifications.show('Generando reporte de flujo de efectivo...', 'info');
+      });
+    }
+    
+    function cargarArqueoCaja() {
+      $('#tituloReporte').text('Arqueo de Caja');
+      $('#tituloTabla').text('Historial de Arqueos Realizados');
+      
+      $('#filtrosContainer').html(`
+        <div class="form-group">
+          <label for="fecha_arqueo_filtro" class="form-label">Fecha</label>
+          <input type="date" id="fecha_arqueo_filtro" class="input" value="${new Date().toISOString().split('T')[0]}" />
+        </div>
+        <div class="form-group">
+          <label for="cajero_arqueo" class="form-label">Cajero</label>
+          <select id="cajero_arqueo" class="input">
+            <option value="">Todos</option>
+            <option value="1">Juan Pérez</option>
+            <option value="2">María García</option>
+            <option value="3">Carlos López</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="button" class="btn btn-success" onclick="nuevoArqueo()">Nuevo Arqueo</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </div>
+      `);
+      
+      $('#resumenContainer').html(`
+        <div class="resumen-card">
+          <div class="resumen-label">Arqueos Realizados</div>
+          <div class="resumen-value">15</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Cuadrados</div>
+          <div class="resumen-value text-success">12</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Con Diferencias</div>
+          <div class="resumen-value text-warning">3</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Diferencia Total</div>
+          <div class="resumen-value text-danger">-S/ 25.50</div>
+        </div>
+      `);
+      
+      $('#tablaContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Turno</th>
+              <th>Cajero</th>
+              <th>Saldo Sistema</th>
+              <th>Efectivo Contado</th>
+              <th>Diferencia</th>
+              <th>Estado</th>
+              <th>Hora Arqueo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2025-10-29</td>
+              <td>Mañana</td>
+              <td>Juan Pérez</td>
+              <td><strong>S/ 2,450.00</strong></td>
+              <td><strong>S/ 2,450.00</strong></td>
+              <td class="text-success">S/ 0.00</td>
+              <td><span class="badge badge-success">Cuadrado</span></td>
+              <td>14:00:00</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verArqueoDetalle(1)"></button>
+                <button class="btn btn-sm btn-secondary" onclick="imprimirArqueo(1)"></button>
+              </td>
+            </tr>
+            <tr>
+              <td>2025-10-28</td>
+              <td>Tarde</td>
+              <td>María García</td>
+              <td><strong>S/ 1,890.00</strong></td>
+              <td><strong>S/ 1,875.00</strong></td>
+              <td class="text-danger">-S/ 15.00</td>
+              <td><span class="badge badge-warning">Diferencia</span></td>
+              <td>18:30:00</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verArqueoDetalle(2)"></button>
+                <button class="btn btn-sm btn-secondary" onclick="imprimirArqueo(2)"></button>
+              </td>
+            </tr>
+            <tr>
+              <td>2025-10-28</td>
+              <td>Mañana</td>
+              <td>Carlos López</td>
+              <td><strong>S/ 3,120.00</strong></td>
+              <td><strong>S/ 3,120.00</strong></td>
+              <td class="text-success">S/ 0.00</td>
+              <td><span class="badge badge-success">Cuadrado</span></td>
+              <td>14:00:00</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verArqueoDetalle(3)"></button>
+                <button class="btn btn-sm btn-secondary" onclick="imprimirArqueo(3)"></button>
+              </td>
+            </tr>
+            <tr>
+              <td>2025-10-27</td>
+              <td>Noche</td>
+              <td>Juan Pérez</td>
+              <td><strong>S/ 2,680.00</strong></td>
+              <td><strong>S/ 2,670.50</strong></td>
+              <td class="text-danger">-S/ 9.50</td>
+              <td><span class="badge badge-warning">Diferencia</span></td>
+              <td>22:00:00</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verArqueoDetalle(4)"></button>
+                <button class="btn btn-sm btn-secondary" onclick="imprimirArqueo(4)"></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      `);
+      
+      $('#formFiltros').on('submit', function(e) {
+        e.preventDefault();
+        Notifications.show('Generando reporte de arqueos...', 'info');
+      });
+    }
+    
+    function cargarGastos() {
+      $('#tituloReporte').text('Gastos Operativos');
+      $('#tituloTabla').text('Registro de Gastos');
+      
+      const hoy = new Date();
+      const hace30Dias = new Date(hoy.getTime() - (30 * 24 * 60 * 60 * 1000));
+      
+      $('#filtrosContainer').html(`
+        <div class="form-group">
+          <label for="fecha_inicio" class="form-label required">Fecha Inicio</label>
+          <input type="date" id="fecha_inicio" class="input" value="${hace30Dias.toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="fecha_fin" class="form-label required">Fecha Fin</label>
+          <input type="date" id="fecha_fin" class="input" value="${hoy.toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="categoria_gasto" class="form-label">Categoría</label>
+          <select id="categoria_gasto" class="input">
+            <option value="">Todas</option>
+            <option value="servicios">Servicios</option>
+            <option value="mantenimiento">Mantenimiento</option>
+            <option value="limpieza">Limpieza</option>
+            <option value="transporte">Transporte</option>
+            <option value="otros">Otros</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </div>
+      `);
+      
+      $('#resumenContainer').html(`
+        <div class="resumen-card">
+          <div class="resumen-label">Total Gastos</div>
+          <div class="resumen-value text-danger">S/ 8,920.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Número de Gastos</div>
+          <div class="resumen-value">45</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Gasto Promedio</div>
+          <div class="resumen-value">S/ 198.22</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Mayor Gasto</div>
+          <div class="resumen-value">S/ 1,250.00</div>
+        </div>
+      `);
+      
+      $('#tablaContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>N° Gasto</th>
+              <th>Fecha</th>
+              <th>Categoría</th>
+              <th>Concepto</th>
+              <th>Proveedor/Beneficiario</th>
+              <th>Monto</th>
+              <th>Método Pago</th>
+              <th>Comprobante</th>
+              <th>Responsable</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>GAS-001</strong></td>
+              <td>2025-10-29</td>
+              <td><span class="badge badge-info">Servicios</span></td>
+              <td>Pago de Luz</td>
+              <td>Enel</td>
+              <td class="text-danger"><strong>S/ 450.00</strong></td>
+              <td>Transferencia</td>
+              <td>BOL-001234</td>
+              <td>Juan Pérez</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verGasto(1)"></button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>GAS-002</strong></td>
+              <td>2025-10-28</td>
+              <td><span class="badge badge-warning">Mantenimiento</span></td>
+              <td>Reparación de Refrigeradora</td>
+              <td>Servicios Técnicos SAC</td>
+              <td class="text-danger"><strong>S/ 350.00</strong></td>
+              <td>Efectivo</td>
+              <td>BOL-005678</td>
+              <td>Carlos López</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verGasto(2)"></button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>GAS-003</strong></td>
+              <td>2025-10-27</td>
+              <td><span class="badge badge-success">Limpieza</span></td>
+              <td>Productos de Limpieza</td>
+              <td>Distribuidora Norte</td>
+              <td class="text-danger"><strong>S/ 180.00</strong></td>
+              <td>Efectivo</td>
+              <td>FAC-002345</td>
+              <td>María García</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verGasto(3)"></button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>GAS-004</strong></td>
+              <td>2025-10-26</td>
+              <td><span class="badge badge-info">Servicios</span></td>
+              <td>Internet y Teléfono</td>
+              <td>Movistar</td>
+              <td class="text-danger"><strong>S/ 280.00</strong></td>
+              <td>Tarjeta</td>
+              <td>REC-009876</td>
+              <td>Juan Pérez</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verGasto(4)"></button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>GAS-005</strong></td>
+              <td>2025-10-25</td>
+              <td><span class="badge badge-primary">Transporte</span></td>
+              <td>Delivery de Productos</td>
+              <td>Transportes Rápidos</td>
+              <td class="text-danger"><strong>S/ 120.00</strong></td>
+              <td>Efectivo</td>
+              <td>BOL-007890</td>
+              <td>Carlos López</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verGasto(5)"></button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>GAS-006</strong></td>
+              <td>2025-10-24</td>
+              <td><span class="badge badge-info">Servicios</span></td>
+              <td>Agua y Alcantarillado</td>
+              <td>Sedapal</td>
+              <td class="text-danger"><strong>S/ 180.00</strong></td>
+              <td>Transferencia</td>
+              <td>REC-003456</td>
+              <td>Juan Pérez</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="verGasto(6)"></button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-600">
+              <td colspan="5">TOTAL</td>
+              <td class="text-danger"><strong>S/ 1,560.00</strong></td>
+              <td colspan="4">-</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="mt-4">
+          <h3 class="text-lg fw-600 mb-3">Gastos por Categoría</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Categoría</th>
+                <th>Cantidad</th>
+                <th>Total</th>
+                <th>Promedio</th>
+                <th>% del Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-info">Servicios</span></td>
+                <td>15</td>
+                <td class="text-danger"><strong>S/ 4,680.00</strong></td>
+                <td>S/ 312.00</td>
+                <td>52.5%</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-warning">Mantenimiento</span></td>
+                <td>8</td>
+                <td class="text-danger"><strong>S/ 2,120.00</strong></td>
+                <td>S/ 265.00</td>
+                <td>23.8%</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-success">Limpieza</span></td>
+                <td>12</td>
+                <td class="text-danger"><strong>S/ 1,480.00</strong></td>
+                <td>S/ 123.33</td>
+                <td>16.6%</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-primary">Transporte</span></td>
+                <td>7</td>
+                <td class="text-danger"><strong>S/ 480.00</strong></td>
+                <td>S/ 68.57</td>
+                <td>5.4%</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-secondary">Otros</span></td>
+                <td>3</td>
+                <td class="text-danger"><strong>S/ 160.00</strong></td>
+                <td>S/ 53.33</td>
+                <td>1.7%</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="fw-600">
+                <td>TOTAL</td>
+                <td>45</td>
+                <td class="text-danger"><strong>S/ 8,920.00</strong></td>
+                <td>S/ 198.22</td>
+                <td>100%</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `);
+      
+      $('#formFiltros').on('submit', function(e) {
+        e.preventDefault();
+        Notifications.show('Generando reporte de gastos...', 'info');
+      });
+    }
+    
+    function nuevoArqueo() {
+      $('#modalArqueo').fadeIn(200);
+    }
+    
+    function cerrarModalArqueo() {
+      $('#modalArqueo').fadeOut(200);
+      $('#formArqueo')[0].reset();
+      calcularArqueo();
+    }
+    
+    function calcularArqueo() {
+      const b200 = parseFloat($('#b200').val() || 0) * 200;
+      const b100 = parseFloat($('#b100').val() || 0) * 100;
+      const b50 = parseFloat($('#b50').val() || 0) * 50;
+      const b20 = parseFloat($('#b20').val() || 0) * 20;
+      const b10 = parseFloat($('#b10').val() || 0) * 10;
+      const m5 = parseFloat($('#m5').val() || 0) * 5;
+      const m2 = parseFloat($('#m2').val() || 0) * 2;
+      const m1 = parseFloat($('#m1').val() || 0) * 1;
+      const m050 = parseFloat($('#m050').val() || 0) * 0.50;
+      const m020 = parseFloat($('#m020').val() || 0) * 0.20;
+      const m010 = parseFloat($('#m010').val() || 0) * 0.10;
+      
+      const total = b200 + b100 + b50 + b20 + b10 + m5 + m2 + m1 + m050 + m020 + m010;
+      const sistema = 2450.00;
+      const diferencia = total - sistema;
+      
+      $('#totalContado').text('S/ ' + total.toFixed(2));
+      $('#diferencia').text('S/ ' + diferencia.toFixed(2));
+      
+      if (diferencia === 0) {
+        $('#diferencia').removeClass('text-danger text-warning').addClass('text-success');
+      } else if (Math.abs(diferencia) <= 5) {
+        $('#diferencia').removeClass('text-danger text-success').addClass('text-warning');
+      } else {
+        $('#diferencia').removeClass('text-success text-warning').addClass('text-danger');
+      }
+    }
+    
+    $('#formArqueo').on('submit', function(e) {
+      e.preventDefault();
+      Notifications.show('Guardando arqueo de caja...', 'success');
+      setTimeout(() => {
+        cerrarModalArqueo();
+        cargarReporte('arqueo');
+      }, 1500);
+    });
+    
+    function verArqueoDetalle(id) {
+      Notifications.show(`Cargando detalle del arqueo #${id}...`, 'info');
+    }
+    
+    function imprimirArqueo(id) {
+      Notifications.show(`Imprimiendo arqueo #${id}...`, 'info');
+      window.print();
+    }
+    
+    function verGasto(id) {
+      Notifications.show(`Cargando detalle del gasto #${id}...`, 'info');
+    }
+    
+    function exportarExcel() {
+      Notifications.show('Exportando reporte a Excel...', 'success');
+    }
+    
+    function exportarPDF() {
+      Notifications.show('Exportando reporte a PDF...', 'success');
+    }
+    
+    function imprimirReporte() {
+      window.print();
+    }
+    
+    // Buscador en tiempo real
+    $('#searchTable').on('keyup', function() {
+      const value = $(this).val().toLowerCase();
+      $('#tablaContainer tbody tr').filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
       });
     });
   </script>
