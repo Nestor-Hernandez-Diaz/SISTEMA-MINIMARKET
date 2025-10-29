@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sucursal - Reporte de Ventas</title>
+  <title>Sucursal - Reporte Ventas por Período</title>
   <link rel="stylesheet" href="../assets/css/variables.css" />
   <link rel="stylesheet" href="../assets/css/layout.css" />
   <link rel="stylesheet" href="../assets/css/components.css" />
@@ -13,51 +13,234 @@
   <script src="/minimarket-system/shared/js/notifications.js"></script>
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
-  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="../assets/js/main.js"></script>
 </head>
 <body class="page reportes-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Reporte de Ventas</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="reportes.html">Reportes</a>
-        <a class="btn" href="reporte-compras.html">Compras</a>
-        <a class="btn" href="reporte-inventario.html">Inventario</a>
-        <a class="btn" href="reporte-caja.html">Caja</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <h1 class="text-xl fw-600">Reporte de Ventas por Período</h1>
+        <p class="text-muted text-sm">Análisis de ventas entre fechas específicas</p>
       </div>
-      <form id="formVentas" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
-        <div>
-          <label class="label" for="desde">Desde</label>
-          <input class="input" id="desde" name="desde" type="date" data-validate="required" />
+
+      <!-- Filtros -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Filtros</h2>
         </div>
-        <div>
-          <label class="label" for="hasta">Hasta</label>
-          <input class="input" id="hasta" name="hasta" type="date" data-validate="required" />
+        <div class="card-body">
+          <form id="formFiltros">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="fecha_inicio" class="form-label required">Fecha Inicio</label>
+                <input 
+                  type="date" 
+                  id="fecha_inicio" 
+                  name="fecha_inicio" 
+                  class="input" 
+                  required 
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="fecha_fin" class="form-label required">Fecha Fin</label>
+                <input 
+                  type="date" 
+                  id="fecha_fin" 
+                  name="fecha_fin" 
+                  class="input" 
+                  required 
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="tipo_reporte" class="form-label">Tipo de Reporte</label>
+                <select id="tipo_reporte" name="tipo_reporte" class="input">
+                  <option value="resumen">Resumen</option>
+                  <option value="detallado">Detallado</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary">
+                  Generar Reporte
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
-        <div class="col-span-2">
-          <button class="btn btn-primary" type="submit">Generar</button>
+      </div>
+
+      <!-- Resumen General -->
+      <div class="reporte-resumen mb-4">
+        <div class="resumen-card">
+          <div class="resumen-label">Total Ventas</div>
+          <div class="resumen-value">S/ 45,680.00</div>
         </div>
-      </form>
+        <div class="resumen-card">
+          <div class="resumen-label">Número de Ventas</div>
+          <div class="resumen-value">892</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Ticket Promedio</div>
+          <div class="resumen-value">S/ 51.21</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Días Analizados</div>
+          <div class="resumen-value">30</div>
+        </div>
+      </div>
+
+      <!-- Ventas por Día -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Ventas por Día</h2>
+        </div>
+        <div class="card-body">
+          <div class="table-actions mb-3">
+            <button class="btn btn-success" onclick="exportarExcel()">
+              Exportar Excel
+            </button>
+            <button class="btn btn-secondary" onclick="imprimirReporte()">
+              Imprimir
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Día</th>
+                  <th>N° Ventas</th>
+                  <th>Subtotal</th>
+                  <th>IGV</th>
+                  <th>Total</th>
+                  <th>Promedio</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>2025-10-01</td>
+                  <td>Martes</td>
+                  <td>28</td>
+                  <td>S/ 1,186.44</td>
+                  <td>S/ 213.56</td>
+                  <td><strong>S/ 1,400.00</strong></td>
+                  <td>S/ 50.00</td>
+                </tr>
+                <tr>
+                  <td>2025-10-02</td>
+                  <td>Miércoles</td>
+                  <td>32</td>
+                  <td>S/ 1,355.93</td>
+                  <td>S/ 244.07</td>
+                  <td><strong>S/ 1,600.00</strong></td>
+                  <td>S/ 50.00</td>
+                </tr>
+                <tr>
+                  <td>2025-10-03</td>
+                  <td>Jueves</td>
+                  <td>35</td>
+                  <td>S/ 1,483.05</td>
+                  <td>S/ 266.95</td>
+                  <td><strong>S/ 1,750.00</strong></td>
+                  <td>S/ 50.00</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="fw-600">
+                  <td colspan="2">TOTALES</td>
+                  <td>892</td>
+                  <td>S/ 38,644.07</td>
+                  <td>S/ 7,035.93</td>
+                  <td><strong>S/ 45,680.00</strong></td>
+                  <td>S/ 51.21</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Análisis por Forma de Pago -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Análisis por Forma de Pago</h2>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Forma de Pago</th>
+                  <th>N° Transacciones</th>
+                  <th>Monto Total</th>
+                  <th>Porcentaje</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="badge badge-success">Efectivo</span></td>
+                  <td>540</td>
+                  <td><strong>S/ 27,408.00</strong></td>
+                  <td>60%</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-info">Tarjeta</span></td>
+                  <td>320</td>
+                  <td><strong>S/ 16,368.00</strong></td>
+                  <td>36%</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-warning">Yape/Plin</span></td>
+                  <td>32</td>
+                  <td><strong>S/ 1,904.00</strong></td>
+                  <td>4%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
   <script>
-    $(function(){
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
-      $('#formVentas').on('submit', async function(e){
+    $(function(){ 
+      if (!Auth.requireRole(['sucursal', 'admin'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
+      
+      // Establecer fechas por defecto (último mes)
+      const hoy = new Date();
+      const hace30Dias = new Date(hoy.getTime() - (30 * 24 * 60 * 60 * 1000));
+      
+      $('#fecha_inicio').val(hace30Dias.toISOString().split('T')[0]);
+      $('#fecha_fin').val(hoy.toISOString().split('T')[0]);
+      
+      $('#formFiltros').on('submit', function(e) {
         e.preventDefault();
-        const errs = Validation.validateForm($(this));
-        if (errs.length) { Notifications.show('Completa el rango de fechas', 'warning'); return; }
-        const params = Object.fromEntries(new FormData(this).entries());
-        const res = await API.get('/reportes/ventas', params);
-        if (res.ok) { Notifications.show('Reporte generado', 'success'); }
-        else { Notifications.show('Error al generar reporte', 'danger'); }
+        Notifications.show('Generando reporte...', 'info');
+        // Aquí iría la llamada a la API
       });
     });
+    
+    function exportarExcel() {
+      Notifications.show('Exportando a Excel...', 'info');
+    }
+    
+    function imprimirReporte() {
+      window.print();
+    }
   </script>
 </body>
 </html>

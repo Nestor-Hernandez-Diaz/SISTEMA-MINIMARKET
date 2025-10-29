@@ -10,61 +10,231 @@
   <link rel="stylesheet" href="../assets/css/pages.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="/minimarket-system/shared/js/utils.js"></script>
-  <script src="/minimarket-system/shared/js/notifications.js"></script>
-  <script src="/minimarket-system/shared/js/api.js"></script>
-  <script src="/minimarket-system/shared/js/auth.js"></script>
   <script src="/minimarket-system/shared/js/validation.js"></script>
+  <script src="/minimarket-system/shared/js/notifications.js"></script>
+  <script src="/minimarket-system/shared/js/auth.js"></script>
   <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/forms.js"></script>
 </head>
-<body class="page usuarios-page">
+<body class="page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Editar Usuario</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="usuarios.html">Listado</a>
-        <a class="btn" href="usuarios-crear.html">Crear</a>
-        <a class="btn" href="parametros.html">Parámetros</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <h1 class="text-xl fw-600"></h1> Editar Usuario</h1>
+        <p class="text-muted text-sm">Modifica la información del usuario</p>
       </div>
-      <form id="formUsuarioEditar" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
-        <div>
-          <label class="label" for="usuarioId">Usuario #</label>
-          <input class="input" id="usuarioId" name="usuarioId" data-validate="required|number" />
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Datos del Usuario</h2>
         </div>
-        <div>
-          <label class="label" for="nombre">Nombre</label>
-          <input class="input" id="nombre" name="nombre" data-validate="required|min:3" />
+        <div class="card-body">
+          <form id="formUsuarioEditar" data-auto>
+            <input type="hidden" id="id" name="id" />
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="nombre" class="form-label required">Nombre Completo</label>
+                <input 
+                  type="text" 
+                  id="nombre" 
+                  name="nombre" 
+                  class="input" 
+                  placeholder="Ej: Juan Pérez García" 
+                  required 
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="email" class="form-label required">Correo Electrónico</label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  name="email" 
+                  class="input" 
+                  placeholder="usuario@email.com" 
+                  required 
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="usuario" class="form-label required">Nombre de Usuario</label>
+                <input 
+                  type="text" 
+                  id="usuario" 
+                  name="usuario" 
+                  class="input" 
+                  placeholder="usuario123" 
+                  required 
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="password" class="form-label">Nueva Contraseña</label>
+                <input 
+                  type="password" 
+                  id="password" 
+                  name="password" 
+                  class="input" 
+                  placeholder="Dejar vacío para no cambiar" 
+                />
+                <small class="form-help">Solo completar si desea cambiar la contraseña</small>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="rol" class="form-label required">Rol</label>
+                <select id="rol" name="rol" class="input" required>
+                  <option value="">Seleccione un rol</option>
+                  <option value="admin">Administrador</option>
+                  <option value="sucursal">Sucursal</option>
+                  <option value="cajero">Cajero</option>
+                  <option value="inventario">Inventario</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="estado" class="form-label required">Estado</label>
+                <select id="estado" name="estado" class="input" required>
+                  <option value="1">Activo</option>
+                  <option value="0">Inactivo</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="telefono" class="form-label">Teléfono</label>
+              <input 
+                type="tel" 
+                id="telefono" 
+                name="telefono" 
+                class="input" 
+                placeholder="+51 999 999 999" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="observaciones" class="form-label">Observaciones</label>
+              <textarea 
+                id="observaciones" 
+                name="observaciones" 
+                class="input" 
+                rows="3" 
+                placeholder="Información adicional..."
+              ></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="history.back()">
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn-primary">
+                Actualizar Usuario
+              </button>
+            </div>
+
+          </form>
         </div>
-        <div>
-          <label class="label" for="rol">Rol</label>
-          <select class="input" id="rol" name="rol" data-validate="required">
-            <option value="cajero">Cajero</option>
-            <option value="almacen">Almacén</option>
-            <option value="admin">Administrador</option>
-          </select>
-        </div>
-        <div class="col-span-2">
-          <button class="btn btn-primary" type="submit">Actualizar</button>
-        </div>
-      </form>
+      </div>
     </div>
   </main>
+
   <script>
-    $(function(){
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
-      $('#formUsuarioEditar').on('submit', async function(e){
+    $(function(){ 
+      if (!Auth.requireRole(['sucursal', 'admin'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
+      
+      // Obtener ID del usuario desde URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('id');
+      
+      if (userId) {
+        $('#id').val(userId);
+        cargarDatosUsuario(userId);
+      } else {
+        Notifications.show('ID de usuario no especificado', 'error');
+        setTimeout(() => window.location.href = 'usuarios.html', 2000);
+      }
+      
+      $('#formUsuarioEditar').on('submit', function(e) {
         e.preventDefault();
-        const errs = Validation.validateForm($(this));
-        if (errs.length) { Notifications.show('Corrige los campos', 'warning'); return; }
-        const data = Object.fromEntries(new FormData(this).entries());
-        const res = await API.put('/usuarios/' + $('#usuarioId').val(), data);
-        if (res.ok) { Notifications.show('Usuario actualizado', 'success'); }
-        else { Notifications.show('Error al actualizar usuario', 'danger'); }
+        
+        const formData = {
+          id: $('#id').val(),
+          nombre: $('#nombre').val(),
+          email: $('#email').val(),
+          usuario: $('#usuario').val(),
+          password: $('#password').val(),
+          rol: $('#rol').val(),
+          estado: $('#estado').val(),
+          telefono: $('#telefono').val(),
+          observaciones: $('#observaciones').val()
+        };
+        
+        // Aquí iría la llamada a la API
+        console.log('Datos a actualizar:', formData);
+        
+        Notifications.show('Usuario actualizado exitosamente', 'success');
+        setTimeout(() => {
+          window.location.href = 'usuarios.html';
+        }, 1500);
       });
     });
+    
+    function cargarDatosUsuario(id) {
+      // Simulación de carga de datos (aquí iría la llamada a la API)
+      const datosEjemplo = {
+        1: {
+          nombre: 'Juan Pérez García',
+          email: 'juan@email.com',
+          usuario: 'jperez',
+          rol: 'admin',
+          estado: '1',
+          telefono: '+51 999 999 999',
+          observaciones: 'Administrador principal'
+        },
+        2: {
+          nombre: 'María García López',
+          email: 'maria@email.com',
+          usuario: 'mgarcia',
+          rol: 'cajero',
+          estado: '1',
+          telefono: '+51 988 888 888',
+          observaciones: 'Cajera del turno mañana'
+        },
+        3: {
+          nombre: 'Carlos López Ruiz',
+          email: 'carlos@email.com',
+          usuario: 'clopez',
+          rol: 'inventario',
+          estado: '0',
+          telefono: '+51 977 777 777',
+          observaciones: 'Usuario temporal'
+        }
+      };
+      
+      const usuario = datosEjemplo[id];
+      if (usuario) {
+        $('#nombre').val(usuario.nombre);
+        $('#email').val(usuario.email);
+        $('#usuario').val(usuario.usuario);
+        $('#rol').val(usuario.rol);
+        $('#estado').val(usuario.estado);
+        $('#telefono').val(usuario.telefono);
+        $('#observaciones').val(usuario.observaciones);
+      }
+    }
   </script>
 </body>
 </html>

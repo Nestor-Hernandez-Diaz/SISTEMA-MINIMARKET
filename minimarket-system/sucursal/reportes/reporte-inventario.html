@@ -13,49 +13,879 @@
   <script src="/minimarket-system/shared/js/notifications.js"></script>
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
-  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="../assets/js/main.js"></script>
 </head>
 <body class="page reportes-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Reporte de Inventario</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="reportes.html">Reportes</a>
-        <a class="btn" href="reporte-ventas.html">Ventas</a>
-        <a class="btn" href="reporte-compras.html">Compras</a>
-        <a class="btn" href="reporte-caja.html">Caja</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <h1 class="text-xl fw-600"><span id="tituloReporte">Reporte de Inventario</span></h1>
+        <p class="text-muted text-sm">Control y análisis del inventario</p>
       </div>
-      <form id="formInventario" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
-        <div>
-          <label class="label" for="categoria">Categoría</label>
-          <input class="input" id="categoria" name="categoria" data-validate="required|min:3" />
+
+      <!-- Selector de Tipo de Reporte -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Tipo de Reporte</h2>
         </div>
-        <div>
-          <label class="label" for="sucursal">Sucursal</label>
-          <input class="input" id="sucursal" name="sucursal" data-validate="required|min:2" />
+        <div class="card-body">
+          <div class="form-group">
+            <label for="tipoReporte" class="form-label">Seleccione el tipo de reporte</label>
+            <select id="tipoReporte" class="input" onchange="cambiarTipoReporte(this.value)">
+              <option value="actual">Stock Actual</option>
+              <option value="minimo">Stock Mínimo</option>
+              <option value="movimientos">Movimientos de Inventario</option>
+              <option value="valorizado">Inventario Valorizado</option>
+            </select>
+          </div>
         </div>
-        <div class="col-span-2">
-          <button class="btn btn-primary" type="submit">Generar</button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Filtros de Búsqueda</h2>
         </div>
-      </form>
+        <div class="card-body">
+          <form id="formFiltros">
+            <div class="form-row" id="filtrosContainer">
+              <!-- Los filtros se cargan dinámicamente -->
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Resumen -->
+      <div class="reporte-resumen mb-4" id="resumenContainer">
+        <!-- El resumen se carga dinámicamente -->
+      </div>
+
+      <!-- Tabla de Resultados -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-lg fw-600"><span id="tituloTabla">Detalle de Inventario</span></h2>
+        </div>
+        <div class="card-body">
+          <div class="table-actions mb-3">
+            <input type="text" id="searchTable" class="input" placeholder="Buscar producto..." style="max-width: 300px;" />
+            <button class="btn btn-success" onclick="exportarExcel()">
+              Exportar Excel
+            </button>
+            <button class="btn btn-secondary" onclick="exportarPDF()">
+              Exportar PDF
+            </button>
+            <button class="btn" onclick="imprimirReporte()">
+              Imprimir
+            </button>
+          </div>
+
+          <div class="table-responsive" id="tablaContainer">
+            <!-- La tabla se carga dinámicamente -->
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
   <script>
-    $(function(){
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
-      $('#formInventario').on('submit', async function(e){
+    let tipoReporte = 'actual';
+    
+    $(function(){ 
+      if (!Auth.requireRole(['sucursal', 'admin', 'inventario'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
+      
+      // Obtener tipo desde URL si existe
+      const urlParams = new URLSearchParams(window.location.search);
+      const tipoParam = urlParams.get('tipo');
+      if (tipoParam) {
+        tipoReporte = tipoParam;
+        $('#tipoReporte').val(tipoParam);
+      }
+      
+      cargarReporte(tipoReporte);
+    });
+    
+    function cambiarTipoReporte(tipo) {
+      tipoReporte = tipo;
+      cargarReporte(tipo);
+    }
+    
+    function cargarReporte(tipo) {
+      switch(tipo) {
+        case 'actual':
+          cargarStockActual();
+          break;
+        case 'minimo':
+          cargarStockMinimo();
+          break;
+        case 'movimientos':
+          cargarMovimientos();
+          break;
+        case 'valorizado':
+          cargarInventarioValorizado();
+          break;
+        default:
+          cargarStockActual();
+      }
+    }
+    
+    function cargarStockActual() {
+      $('#tituloReporte').text('Stock Actual');
+      $('#tituloTabla').text('Inventario Actual de Productos');
+      
+      $('#filtrosContainer').html(`
+        <div class="form-group">
+          <label for="categoria" class="form-label">Categoría</label>
+          <select id="categoria" class="input">
+            <option value="">Todas las categorías</option>
+            <option value="1">Abarrotes</option>
+            <option value="2">Bebidas</option>
+            <option value="3">Lácteos</option>
+            <option value="4">Limpieza</option>
+            <option value="5">Snacks</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="estado" class="form-label">Estado de Stock</label>
+          <select id="estado" class="input">
+            <option value="">Todos los estados</option>
+            <option value="normal">Stock Normal</option>
+            <option value="bajo">Stock Bajo</option>
+            <option value="critico">Stock Crítico</option>
+            <option value="agotado">Agotado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="ordenar" class="form-label">Ordenar por</label>
+          <select id="ordenar" class="input">
+            <option value="nombre">Nombre</option>
+            <option value="stock_asc">Stock (Menor a Mayor)</option>
+            <option value="stock_desc">Stock (Mayor a Menor)</option>
+            <option value="valor">Valor Total</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </div>
+      `);
+      
+      $('#resumenContainer').html(`
+        <div class="resumen-card">
+          <div class="resumen-label">Total Productos</div>
+          <div class="resumen-value">456</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Valor Total Inventario</div>
+          <div class="resumen-value">S/ 125,680.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Stock Bajo</div>
+          <div class="resumen-value text-warning">23</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Stock Crítico</div>
+          <div class="resumen-value text-danger">7</div>
+        </div>
+      `);
+      
+      $('#tablaContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Stock Actual</th>
+              <th>Stock Mínimo</th>
+              <th>Unidad</th>
+              <th>Precio Compra</th>
+              <th>Precio Venta</th>
+              <th>Valor Total</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>PRD001</strong></td>
+              <td>Arroz Superior 1kg</td>
+              <td>Abarrotes</td>
+              <td><strong>150</strong></td>
+              <td>50</td>
+              <td>Unidad</td>
+              <td>S/ 3.80</td>
+              <td>S/ 4.50</td>
+              <td>S/ 570.00</td>
+              <td><span class="badge badge-success">Normal</span></td>
+            </tr>
+            <tr>
+              <td><strong>PRD002</strong></td>
+              <td>Aceite Primor 1L</td>
+              <td>Abarrotes</td>
+              <td><strong>25</strong></td>
+              <td>30</td>
+              <td>Unidad</td>
+              <td>S/ 8.50</td>
+              <td>S/ 10.00</td>
+              <td>S/ 212.50</td>
+              <td><span class="badge badge-warning">Bajo</span></td>
+            </tr>
+            <tr>
+              <td><strong>PRD003</strong></td>
+              <td>Leche Gloria Evaporada</td>
+              <td>Lácteos</td>
+              <td><strong>8</strong></td>
+              <td>20</td>
+              <td>Unidad</td>
+              <td>S/ 3.20</td>
+              <td>S/ 3.80</td>
+              <td>S/ 25.60</td>
+              <td><span class="badge badge-danger">Crítico</span></td>
+            </tr>
+            <tr>
+              <td><strong>PRD004</strong></td>
+              <td>Coca Cola 1.5L</td>
+              <td>Bebidas</td>
+              <td><strong>85</strong></td>
+              <td>40</td>
+              <td>Unidad</td>
+              <td>S/ 4.20</td>
+              <td>S/ 5.50</td>
+              <td>S/ 357.00</td>
+              <td><span class="badge badge-success">Normal</span></td>
+            </tr>
+            <tr>
+              <td><strong>PRD005</strong></td>
+              <td>Azúcar Blanca 1kg</td>
+              <td>Abarrotes</td>
+              <td><strong>120</strong></td>
+              <td>60</td>
+              <td>Unidad</td>
+              <td>S/ 3.50</td>
+              <td>S/ 4.20</td>
+              <td>S/ 420.00</td>
+              <td><span class="badge badge-success">Normal</span></td>
+            </tr>
+            <tr>
+              <td><strong>PRD006</strong></td>
+              <td>Detergente Ariel 1kg</td>
+              <td>Limpieza</td>
+              <td><strong>15</strong></td>
+              <td>25</td>
+              <td>Unidad</td>
+              <td>S/ 12.00</td>
+              <td>S/ 15.00</td>
+              <td>S/ 180.00</td>
+              <td><span class="badge badge-warning">Bajo</span></td>
+            </tr>
+            <tr>
+              <td><strong>PRD007</strong></td>
+              <td>Fideos Don Vittorio 250g</td>
+              <td>Abarrotes</td>
+              <td><strong>200</strong></td>
+              <td>80</td>
+              <td>Unidad</td>
+              <td>S/ 2.50</td>
+              <td>S/ 3.00</td>
+              <td>S/ 500.00</td>
+              <td><span class="badge badge-success">Normal</span></td>
+            </tr>
+            <tr>
+              <td><strong>PRD008</strong></td>
+              <td>Sal de Mesa 1kg</td>
+              <td>Abarrotes</td>
+              <td><strong>5</strong></td>
+              <td>15</td>
+              <td>Unidad</td>
+              <td>S/ 1.80</td>
+              <td>S/ 2.20</td>
+              <td>S/ 9.00</td>
+              <td><span class="badge badge-danger">Crítico</span></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-600">
+              <td colspan="3">TOTAL GENERAL</td>
+              <td>608</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td><strong>S/ 2,274.10</strong></td>
+              <td>-</td>
+            </tr>
+          </tfoot>
+        </table>
+      `);
+      
+      $('#formFiltros').on('submit', function(e) {
         e.preventDefault();
-        const errs = Validation.validateForm($(this));
-        if (errs.length) { Notifications.show('Completa los filtros', 'warning'); return; }
-        const params = Object.fromEntries(new FormData(this).entries());
-        const res = await API.get('/reportes/inventario', params);
-        if (res.ok) { Notifications.show('Reporte generado', 'success'); }
-        else { Notifications.show('Error al generar reporte', 'danger'); }
+        Notifications.show('Generando reporte de stock actual...', 'info');
+        // Aquí iría la llamada a la API
+      });
+    }
+    
+    function cargarStockMinimo() {
+      $('#tituloReporte').text('Stock Mínimo');
+      $('#tituloTabla').text('Productos Bajo Stock Mínimo - Requieren Reposición');
+      
+      $('#filtrosContainer').html(`
+        <div class="form-group">
+          <label for="categoria" class="form-label">Categoría</label>
+          <select id="categoria" class="input">
+            <option value="">Todas las categorías</option>
+            <option value="1">Abarrotes</option>
+            <option value="2">Bebidas</option>
+            <option value="3">Lácteos</option>
+            <option value="4">Limpieza</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="prioridad" class="form-label">Prioridad</label>
+          <select id="prioridad" class="input">
+            <option value="">Todas</option>
+            <option value="alta">Alta (Crítico)</option>
+            <option value="media">Media (Bajo)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </div>
+      `);
+      
+      $('#resumenContainer').html(`
+        <div class="resumen-card">
+          <div class="resumen-label">Productos Bajo Mínimo</div>
+          <div class="resumen-value text-warning">30</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Valor a Reponer</div>
+          <div class="resumen-value">S/ 8,450.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Prioridad Alta (Crítico)</div>
+          <div class="resumen-value text-danger">7</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Prioridad Media (Bajo)</div>
+          <div class="resumen-value text-warning">23</div>
+        </div>
+      `);
+      
+      $('#tablaContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Stock Actual</th>
+              <th>Stock Mínimo</th>
+              <th>Faltante</th>
+              <th>Costo Unit.</th>
+              <th>Valor Faltante</th>
+              <th>Prioridad</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>PRD003</strong></td>
+              <td>Leche Gloria Evaporada</td>
+              <td>Lácteos</td>
+              <td><strong class="text-danger">8</strong></td>
+              <td>20</td>
+              <td>12</td>
+              <td>S/ 3.20</td>
+              <td>S/ 38.40</td>
+              <td><span class="badge badge-danger">Alta</span></td>
+              <td><button class="btn btn-sm btn-primary" onclick="generarPedido('PRD003')">Generar Pedido</button></td>
+            </tr>
+            <tr>
+              <td><strong>PRD008</strong></td>
+              <td>Sal de Mesa 1kg</td>
+              <td>Abarrotes</td>
+              <td><strong class="text-danger">5</strong></td>
+              <td>15</td>
+              <td>10</td>
+              <td>S/ 1.80</td>
+              <td>S/ 18.00</td>
+              <td><span class="badge badge-danger">Alta</span></td>
+              <td><button class="btn btn-sm btn-primary" onclick="generarPedido('PRD008')">Generar Pedido</button></td>
+            </tr>
+            <tr>
+              <td><strong>PRD002</strong></td>
+              <td>Aceite Primor 1L</td>
+              <td>Abarrotes</td>
+              <td><strong class="text-warning">25</strong></td>
+              <td>30</td>
+              <td>5</td>
+              <td>S/ 8.50</td>
+              <td>S/ 42.50</td>
+              <td><span class="badge badge-warning">Media</span></td>
+              <td><button class="btn btn-sm btn-primary" onclick="generarPedido('PRD002')">Generar Pedido</button></td>
+            </tr>
+            <tr>
+              <td><strong>PRD006</strong></td>
+              <td>Detergente Ariel 1kg</td>
+              <td>Limpieza</td>
+              <td><strong class="text-warning">15</strong></td>
+              <td>25</td>
+              <td>10</td>
+              <td>S/ 12.00</td>
+              <td>S/ 120.00</td>
+              <td><span class="badge badge-warning">Media</span></td>
+              <td><button class="btn btn-sm btn-primary" onclick="generarPedido('PRD006')">Generar Pedido</button></td>
+            </tr>
+            <tr>
+              <td><strong>PRD015</strong></td>
+              <td>Papel Higiénico Elite 4un</td>
+              <td>Limpieza</td>
+              <td><strong class="text-danger">3</strong></td>
+              <td>12</td>
+              <td>9</td>
+              <td>S/ 5.50</td>
+              <td>S/ 49.50</td>
+              <td><span class="badge badge-danger">Alta</span></td>
+              <td><button class="btn btn-sm btn-primary" onclick="generarPedido('PRD015')">Generar Pedido</button></td>
+            </tr>
+            <tr>
+              <td><strong>PRD022</strong></td>
+              <td>Mantequilla Gloria 200g</td>
+              <td>Lácteos</td>
+              <td><strong class="text-warning">18</strong></td>
+              <td>25</td>
+              <td>7</td>
+              <td>S/ 6.80</td>
+              <td>S/ 47.60</td>
+              <td><span class="badge badge-warning">Media</span></td>
+              <td><button class="btn btn-sm btn-primary" onclick="generarPedido('PRD022')">Generar Pedido</button></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-600">
+              <td colspan="5">TOTALES</td>
+              <td>53</td>
+              <td>-</td>
+              <td><strong>S/ 316.00</strong></td>
+              <td colspan="2">-</td>
+            </tr>
+          </tfoot>
+        </table>
+      `);
+      
+      $('#formFiltros').on('submit', function(e) {
+        e.preventDefault();
+        Notifications.show('Generando reporte de stock mínimo...', 'info');
+      });
+    }
+    
+    function cargarMovimientos() {
+      $('#tituloReporte').text('Movimientos de Inventario');
+      $('#tituloTabla').text('Registro de Movimientos de Inventario');
+      
+      const hoy = new Date();
+      const hace7Dias = new Date(hoy.getTime() - (7 * 24 * 60 * 60 * 1000));
+      
+      $('#filtrosContainer').html(`
+        <div class="form-group">
+          <label for="fecha_inicio" class="form-label required">Fecha Inicio</label>
+          <input type="date" id="fecha_inicio" class="input" value="${hace7Dias.toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="fecha_fin" class="form-label required">Fecha Fin</label>
+          <input type="date" id="fecha_fin" class="input" value="${hoy.toISOString().split('T')[0]}" required />
+        </div>
+        <div class="form-group">
+          <label for="tipo_movimiento" class="form-label">Tipo de Movimiento</label>
+          <select id="tipo_movimiento" class="input">
+            <option value="">Todos</option>
+            <option value="entrada">Entrada</option>
+            <option value="salida">Salida</option>
+            <option value="ajuste">Ajuste</option>
+            <option value="devolucion">Devolución</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </div>
+      `);
+      
+      $('#resumenContainer').html(`
+        <div class="resumen-card">
+          <div class="resumen-label">Total Entradas</div>
+          <div class="resumen-value text-success">+2,450</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Total Salidas</div>
+          <div class="resumen-value text-danger">-2,156</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Ajustes</div>
+          <div class="resumen-value">15</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Saldo Neto</div>
+          <div class="resumen-value text-success">+294</div>
+        </div>
+      `);
+      
+      $('#tablaContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Fecha/Hora</th>
+              <th>Tipo</th>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Motivo</th>
+              <th>Usuario</th>
+              <th>Referencia</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2025-10-29 10:30</td>
+              <td><span class="badge badge-success">Entrada</span></td>
+              <td>PRD001</td>
+              <td>Arroz Superior 1kg</td>
+              <td><strong class="text-success">+50</strong></td>
+              <td>Compra</td>
+              <td>Juan Pérez</td>
+              <td>COMP-001</td>
+              <td>Compra a Proveedor ABC</td>
+            </tr>
+            <tr>
+              <td>2025-10-29 11:15</td>
+              <td><span class="badge badge-danger">Salida</span></td>
+              <td>PRD002</td>
+              <td>Aceite Primor 1L</td>
+              <td><strong class="text-danger">-10</strong></td>
+              <td>Venta</td>
+              <td>María García</td>
+              <td>V-00045</td>
+              <td>Venta al público</td>
+            </tr>
+            <tr>
+              <td>2025-10-29 14:20</td>
+              <td><span class="badge badge-warning">Ajuste</span></td>
+              <td>PRD003</td>
+              <td>Leche Gloria Evaporada</td>
+              <td><strong class="text-danger">-2</strong></td>
+              <td>Merma</td>
+              <td>Carlos López</td>
+              <td>AJ-001</td>
+              <td>Productos vencidos</td>
+            </tr>
+            <tr>
+              <td>2025-10-29 15:45</td>
+              <td><span class="badge badge-success">Entrada</span></td>
+              <td>PRD004</td>
+              <td>Coca Cola 1.5L</td>
+              <td><strong class="text-success">+100</strong></td>
+              <td>Compra</td>
+              <td>Juan Pérez</td>
+              <td>COMP-002</td>
+              <td>Compra directa</td>
+            </tr>
+            <tr>
+              <td>2025-10-28 09:30</td>
+              <td><span class="badge badge-danger">Salida</span></td>
+              <td>PRD005</td>
+              <td>Azúcar Blanca 1kg</td>
+              <td><strong class="text-danger">-25</strong></td>
+              <td>Venta</td>
+              <td>María García</td>
+              <td>V-00042</td>
+              <td>Venta mayorista</td>
+            </tr>
+            <tr>
+              <td>2025-10-28 16:00</td>
+              <td><span class="badge badge-info">Devolución</span></td>
+              <td>PRD006</td>
+              <td>Detergente Ariel 1kg</td>
+              <td><strong class="text-success">+3</strong></td>
+              <td>Dev. Cliente</td>
+              <td>Ana Torres</td>
+              <td>DEV-001</td>
+              <td>Producto defectuoso</td>
+            </tr>
+            <tr>
+              <td>2025-10-27 11:20</td>
+              <td><span class="badge badge-warning">Ajuste</span></td>
+              <td>PRD007</td>
+              <td>Fideos Don Vittorio 250g</td>
+              <td><strong class="text-success">+5</strong></td>
+              <td>Corrección</td>
+              <td>Carlos López</td>
+              <td>AJ-002</td>
+              <td>Error en inventario anterior</td>
+            </tr>
+            <tr>
+              <td>2025-10-27 13:45</td>
+              <td><span class="badge badge-danger">Salida</span></td>
+              <td>PRD008</td>
+              <td>Sal de Mesa 1kg</td>
+              <td><strong class="text-danger">-8</strong></td>
+              <td>Venta</td>
+              <td>María García</td>
+              <td>V-00038</td>
+              <td>Venta normal</td>
+            </tr>
+          </tbody>
+        </table>
+      `);
+      
+      $('#formFiltros').on('submit', function(e) {
+        e.preventDefault();
+        Notifications.show('Generando reporte de movimientos...', 'info');
+      });
+    }
+    
+    function cargarInventarioValorizado() {
+      $('#tituloReporte').text('Inventario Valorizado');
+      $('#tituloTabla').text('Valorización del Inventario por Categoría');
+      
+      $('#filtrosContainer').html(`
+        <div class="form-group">
+          <label for="categoria" class="form-label">Categoría</label>
+          <select id="categoria" class="input">
+            <option value="">Todas las categorías</option>
+            <option value="1">Abarrotes</option>
+            <option value="2">Bebidas</option>
+            <option value="3">Lácteos</option>
+            <option value="4">Limpieza</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="metodo_valoracion" class="form-label">Método de Valoración</label>
+          <select id="metodo_valoracion" class="input">
+            <option value="promedio">Costo Promedio</option>
+            <option value="ultimo">Último Costo</option>
+            <option value="primero">Primer Costo (FIFO)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="incluir_agotados" class="form-label">Incluir Agotados</label>
+          <select id="incluir_agotados" class="input">
+            <option value="no">No</option>
+            <option value="si">Sí</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </div>
+      `);
+      
+      $('#resumenContainer').html(`
+        <div class="resumen-card">
+          <div class="resumen-label">Valor Total Compra</div>
+          <div class="resumen-value">S/ 125,680.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Valor Total Venta</div>
+          <div class="resumen-value">S/ 168,920.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Utilidad Potencial</div>
+          <div class="resumen-value text-success">S/ 43,240.00</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Margen Promedio</div>
+          <div class="resumen-value">34.4%</div>
+        </div>
+      `);
+      
+      $('#tablaContainer').html(`
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Categoría</th>
+              <th>N° Productos</th>
+              <th>Unidades Total</th>
+              <th>Valor Costo</th>
+              <th>Valor Venta</th>
+              <th>Utilidad Potencial</th>
+              <th>Margen %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Abarrotes</strong></td>
+              <td>150</td>
+              <td>3,250</td>
+              <td>S/ 45,680.00</td>
+              <td>S/ 62,340.00</td>
+              <td class="text-success">S/ 16,660.00</td>
+              <td><strong>36.5%</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Bebidas</strong></td>
+              <td>85</td>
+              <td>2,100</td>
+              <td>S/ 32,450.00</td>
+              <td>S/ 41,780.00</td>
+              <td class="text-success">S/ 9,330.00</td>
+              <td><strong>28.8%</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Lácteos</strong></td>
+              <td>65</td>
+              <td>1,800</td>
+              <td>S/ 28,650.00</td>
+              <td>S/ 38,200.00</td>
+              <td class="text-success">S/ 9,550.00</td>
+              <td><strong>33.3%</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Limpieza</strong></td>
+              <td>78</td>
+              <td>980</td>
+              <td>S/ 12,340.00</td>
+              <td>S/ 16,850.00</td>
+              <td class="text-success">S/ 4,510.00</td>
+              <td><strong>36.6%</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Snacks</strong></td>
+              <td>78</td>
+              <td>826</td>
+              <td>S/ 6,560.00</td>
+              <td>S/ 9,750.00</td>
+              <td class="text-success">S/ 3,190.00</td>
+              <td><strong>48.6%</strong></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-600" style="background-color: #f8fafc;">
+              <td><strong>TOTAL GENERAL</strong></td>
+              <td><strong>456</strong></td>
+              <td><strong>8,956</strong></td>
+              <td><strong>S/ 125,680.00</strong></td>
+              <td><strong>S/ 168,920.00</strong></td>
+              <td class="text-success"><strong>S/ 43,240.00</strong></td>
+              <td><strong>34.4%</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="mt-4">
+          <h3 class="text-lg fw-600 mb-3">Detalle por Producto (Top 10 por Valor)</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Stock</th>
+                <th>Costo Unit.</th>
+                <th>Precio Venta</th>
+                <th>Valor Costo</th>
+                <th>Valor Venta</th>
+                <th>Utilidad</th>
+                <th>Margen %</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>PRD001</td>
+                <td>Arroz Superior 1kg</td>
+                <td>Abarrotes</td>
+                <td>150</td>
+                <td>S/ 3.80</td>
+                <td>S/ 4.50</td>
+                <td>S/ 570.00</td>
+                <td>S/ 675.00</td>
+                <td class="text-success">S/ 105.00</td>
+                <td>18.4%</td>
+              </tr>
+              <tr>
+                <td>PRD007</td>
+                <td>Fideos Don Vittorio 250g</td>
+                <td>Abarrotes</td>
+                <td>200</td>
+                <td>S/ 2.50</td>
+                <td>S/ 3.00</td>
+                <td>S/ 500.00</td>
+                <td>S/ 600.00</td>
+                <td class="text-success">S/ 100.00</td>
+                <td>20.0%</td>
+              </tr>
+              <tr>
+                <td>PRD005</td>
+                <td>Azúcar Blanca 1kg</td>
+                <td>Abarrotes</td>
+                <td>120</td>
+                <td>S/ 3.50</td>
+                <td>S/ 4.20</td>
+                <td>S/ 420.00</td>
+                <td>S/ 504.00</td>
+                <td class="text-success">S/ 84.00</td>
+                <td>20.0%</td>
+              </tr>
+              <tr>
+                <td>PRD004</td>
+                <td>Coca Cola 1.5L</td>
+                <td>Bebidas</td>
+                <td>85</td>
+                <td>S/ 4.20</td>
+                <td>S/ 5.50</td>
+                <td>S/ 357.00</td>
+                <td>S/ 467.50</td>
+                <td class="text-success">S/ 110.50</td>
+                <td>31.0%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `);
+      
+      $('#formFiltros').on('submit', function(e) {
+        e.preventDefault();
+        Notifications.show('Generando reporte valorizado...', 'info');
+      });
+    }
+    
+    function generarPedido(codigo) {
+      Notifications.show(`Generando orden de pedido para producto ${codigo}...`, 'success');
+      // Aquí iría la lógica para generar el pedido
+      setTimeout(() => {
+        window.location.href = '../compras/compras-crear.html?producto=' + codigo;
+      }, 1500);
+    }
+    
+    function exportarExcel() {
+      Notifications.show('Exportando reporte a Excel...', 'success');
+      // Aquí iría la lógica de exportación
+    }
+    
+    function exportarPDF() {
+      Notifications.show('Exportando reporte a PDF...', 'success');
+      // Aquí iría la lógica de exportación
+    }
+    
+    function imprimirReporte() {
+      window.print();
+    }
+    
+    // Buscador en tiempo real
+    $('#searchTable').on('keyup', function() {
+      const value = $(this).val().toLowerCase();
+      $('#tablaContainer tbody tr').filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
       });
     });
   </script>
