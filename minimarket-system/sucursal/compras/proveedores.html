@@ -14,9 +14,11 @@
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
   <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/forms.js"></script>
+  <script src="../assets/js/modales.js"></script>
   <script src="../assets/js/proveedores.js"></script>
 </head>
-<body class="page productos-page">
+<body class="page compras-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
   <main class="main">
@@ -25,16 +27,16 @@
         <h1>Proveedores</h1>
         <div>
           <button class="btn btn-primary" data-action="new-proveedor">Nuevo Proveedor</button>
-          <a class="btn" href="productos.html">Productos</a>
-          <a class="btn" href="categorias.html">Categorías</a>
         </div>
       </div>
       <div id="tableContainer"></div>
     </div>
   </main>
   <div id="notificationsContainer"></div>
+  <div id="modalContainer"></div>
   <script>
     Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html')
+      .then(() => Utils.loadComponent('#modalContainer', '/minimarket-system/shared/components/modal-template.html'))
       .then(() => Proveedores.bind());
   </script>
 </body>

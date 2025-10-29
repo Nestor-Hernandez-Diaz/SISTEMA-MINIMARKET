@@ -1,41 +1,18 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sucursal - Detalle de Compra</title>
-  <link rel="stylesheet" href="../assets/css/variables.css" />
-  <link rel="stylesheet" href="../assets/css/layout.css" />
-  <link rel="stylesheet" href="../assets/css/components.css" />
-  <link rel="stylesheet" href="../assets/css/pages.css" />
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="/minimarket-system/shared/js/utils.js"></script>
-  <script src="/minimarket-system/shared/js/notifications.js"></script>
-  <script src="/minimarket-system/shared/js/api.js"></script>
-  <script src="/minimarket-system/shared/js/auth.js"></script>
-  <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/tables.js"></script>
-</head>
-<body class="page compras-page">
-  <div id="navbar"></div>
-  <div id="sidebar"></div>
-  <main class="main">
-    <div class="container">
-      <h1>Detalle de Compra</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="compras.html">Listado</a>
-        <a class="btn" href="recepcion.html">Recepción</a>
-      </div>
-      <div id="tableContainer"></div>
+<!-- Parcial de detalle de compra para uso en modal-template -->
+<div class="card">
+  <div class="card-header">Detalle de Compra</div>
+  <div class="card-body">
+    <div class="grid mb-3" style="grid-template-columns: 1fr 1fr; gap: var(--space-2)">
+      <div><strong>N° Orden:</strong> <span id="detalleNumero">-</span></div>
+      <div><strong>Fecha:</strong> <span id="detalleFecha">-</span></div>
+      <div><strong>Proveedor:</strong> <span id="detalleProveedor">-</span></div>
+      <div><strong>Estado:</strong> <span id="detalleEstado">-</span></div>
     </div>
-  </main>
-  <script>
-    $(function(){ 
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
-    });
-    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html');
-  </script>
-</body>
-</html>
+    <div id="detalleTableContainer"></div>
+    <div class="grid mt-3" style="grid-template-columns: 1fr 1fr; gap: var(--space-2)">
+      <div><strong>Subtotal:</strong> <span id="detalleSubtotal">S/ 0.00</span></div>
+      <div><strong>IGV:</strong> <span id="detalleIgv">S/ 0.00</span></div>
+      <div class="col-span-2"><strong>Total:</strong> <span id="detalleTotal">S/ 0.00</span></div>
+    </div>
+  </div>
+</div>

@@ -250,10 +250,15 @@ window.Productos = (function() {
       }
     });
 
-    // Botones de acción
+    // Crear nuevo producto (abre modal)
+    $(document).on('click', '[data-action="new-producto"]', function() {
+      openProductoModal();
+    });
+
+    // Editar producto (abre modal)
     $(document).on('click', '[data-action="edit"]', function() {
-      const id = $(this).data('id');
-      window.location.href = `productos-editar.html?id=${id}`;
+      const id = Number($(this).data('id'));
+      openProductoModal(id);
     });
 
     $(document).on('click', '[data-action="delete"]', function() {
@@ -359,13 +364,33 @@ window.Productos = (function() {
       }
 
       if (success) {
-        setTimeout(() => {
-          window.location.href = 'productos.html';
-        }, 1000);
+        // Si está abierto el modal, cerrar y refrescar listado; si no, redirigir
+        if ($('#modalBackdrop').length && $('#modalBackdrop').hasClass('show')) {
+          Modales.close();
+          // Volver a cargar datos y refrescar tabla
+          await loadData();
+          state.page = 1;
+          renderTable();
+        } else {
+          setTimeout(() => { window.location.href = 'productos.html'; }, 500);
+        }
       }
 
       Forms.clearLoading($btn);
     });
+  };
+
+  // Abrir modal de crear/editar producto e inyectar formulario
+  const openProductoModal = async (id = null) => {
+    const title = id ? 'Editar Producto' : 'Nuevo Producto';
+    // Abrir modal con botón confirmar que envía el formulario
+    Modales.open(title, '<div id="modalProductoBody"></div>', {
+      confirmText: id ? 'Actualizar' : 'Guardar',
+      onConfirm: () => { $('#formProducto').trigger('submit'); }
+    });
+    // Cargar formulario en el cuerpo del modal y bindear
+    await Utils.loadComponent('#modalBody', '/minimarket-system/sucursal/productos/productos-crear.html');
+    await bindFormulario(id);
   };
 
   return {
@@ -373,6 +398,7 @@ window.Productos = (function() {
     bindFormulario,
     getProductoById,
     getCategorias: () => categorias,
-    getProveedores: () => proveedores
+    getProveedores: () => proveedores,
+    openProductoModal
   };
 })();

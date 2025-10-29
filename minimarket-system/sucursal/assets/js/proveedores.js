@@ -93,95 +93,55 @@ window.Proveedores = (function() {
     $pagination.html(buttons.join(''));
   };
 
-  const openModal = (id = null) => {
-    currentId = id;
-    const proveedor = id ? proveedores.find(p => p.id === id) : null;
+  const openProveedorModal = async (id = null) => {
+    currentId = id || null;
+    const proveedor = currentId ? proveedores.find(p => p.id === currentId) : null;
 
-    const modalHtml = `
-      <div class="modal-backdrop active" id="modalProveedor">
-        <div class="modal">
-          <div class="modal-header">
-            <h3>${id ? 'Editar' : 'Nuevo'} Proveedor</h3>
-            <button class="btn-close" data-action="close-modal">&times;</button>
-          </div>
-          <div class="modal-body">
-            <form id="formProveedor">
-              <div class="mb-3">
-                <label class="label" for="nombre">Nombre / Razón Social *</label>
-                <input type="text" class="input" id="nombre" required value="${proveedor?.nombre || ''}" />
-              </div>
-              <div class="mb-3">
-                <label class="label" for="ruc">RUC</label>
-                <input type="text" class="input" id="ruc" maxlength="11" value="${proveedor?.ruc || ''}" />
-              </div>
-              <div class="mb-3">
-                <label class="label" for="telefono">Teléfono</label>
-                <input type="text" class="input" id="telefono" value="${proveedor?.telefono || ''}" />
-              </div>
-              <div class="mb-3">
-                <label class="label" for="email">Email</label>
-                <input type="email" class="input" id="email" value="${proveedor?.email || ''}" />
-              </div>
-              <div class="mb-3">
-                <label class="label" for="direccion">Dirección</label>
-                <textarea class="input" id="direccion" rows="2">${proveedor?.direccion || ''}</textarea>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button class="btn" data-action="close-modal">Cancelar</button>
-            <button class="btn btn-primary" data-action="save-proveedor">Guardar</button>
-          </div>
-        </div>
-      </div>
-    `;
+    Modales.open(`${currentId ? 'Editar' : 'Nuevo'} Proveedor`, '<div id="modalProveedorBody"></div>', {
+      confirmText: 'Guardar',
+      onConfirm: () => { $('#formProveedor').trigger('submit'); }
+    });
 
-    $('body').append(modalHtml);
-    $('#nombre').focus();
-  };
+    await Utils.loadComponent('#modalBody', '/minimarket-system/sucursal/compras/proveedores-crear.html');
 
-  const closeModal = () => {
-    $('#modalProveedor').remove();
-    currentId = null;
-  };
-
-  const guardar = async () => {
-    const nombre = $('#nombre').val().trim();
-    const ruc = $('#ruc').val().trim();
-    const telefono = $('#telefono').val().trim();
-    const email = $('#email').val().trim();
-    const direccion = $('#direccion').val().trim();
-
-    if (!nombre) {
-      Notifications.show('El nombre es requerido', 'warning');
-      return;
+    if (proveedor) {
+      $('#nombre').val(proveedor.nombre || '');
+      $('#ruc').val(proveedor.ruc || '');
+      $('#telefono').val(proveedor.telefono || '');
+      $('#email').val(proveedor.email || '');
+      $('#direccion').val(proveedor.direccion || '');
     }
 
-    const data = { nombre, ruc, telefono, email, direccion };
+    $('#formProveedor').on('submit', async function(e) {
+      e.preventDefault();
+      const errs = Validation.validateForm($(this));
+      if (errs.length) { Notifications.show('Revisa los campos del formulario', 'warning'); return; }
+      const data = Object.fromEntries(new FormData(this).entries());
 
-    let success;
-    if (currentId) {
-      success = await API.put(`/api/proveedores/${currentId}`, data);
-      if (success.ok) {
-        const index = proveedores.findIndex(p => p.id === currentId);
-        if (index !== -1) proveedores[index] = { ...proveedores[index], ...data };
-        Notifications.show('Proveedor actualizado', 'success');
+      let success;
+      if (currentId) {
+        success = await API.put(`/api/proveedores/${currentId}`, data);
+        if (success.ok) {
+          const index = proveedores.findIndex(p => p.id === currentId);
+          if (index !== -1) proveedores[index] = { ...proveedores[index], ...data };
+          Notifications.show('Proveedor actualizado', 'success');
+        }
+      } else {
+        success = await API.post('/api/proveedores', data);
+        if (success.ok) {
+          const newId = Math.max(...proveedores.map(p => p.id), 0) + 1;
+          proveedores.push({ ...data, id: newId });
+          Notifications.show('Proveedor creado', 'success');
+        }
       }
-    } else {
-      success = await API.post('/api/proveedores', data);
-      if (success.ok) {
-        const newId = Math.max(...proveedores.map(p => p.id), 0) + 1;
-        proveedores.push({ ...data, id: newId });
-        Notifications.show('Proveedor creado', 'success');
-      }
-    }
 
-    if (success.ok) {
-      closeModal();
-      renderTable();
-    } else {
-      Notifications.show('Error al guardar proveedor', 'danger');
-    }
+      if (success.ok) {
+        Modales.close();
+        renderTable();
+      } else {
+        Notifications.show('Error al guardar proveedor', 'danger');
+      }
+    });
   };
 
   const eliminar = async (id) => {
@@ -215,22 +175,17 @@ window.Proveedores = (function() {
       }
     });
 
-    $(document).on('click', '[data-action="new-proveedor"]', () => openModal());
+    $(document).on('click', '[data-action="new-proveedor"]', () => openProveedorModal());
     $(document).on('click', '[data-action="edit"]', function() {
-      openModal(Number($(this).data('id')));
+      openProveedorModal(Number($(this).data('id')));
     });
     $(document).on('click', '[data-action="delete"]', function() {
       eliminar(Number($(this).data('id')));
     });
-    $(document).on('click', '[data-action="close-modal"]', closeModal);
-    $(document).on('click', '[data-action="save-proveedor"]', guardar);
-
-    $(document).on('keydown', function(e) {
-      if (e.key === 'Escape' && $('#modalProveedor').length) closeModal();
-    });
+    // Modal-template maneja cierre y accesibilidad por sí mismo
 
     renderTable();
   };
 
-  return { bind };
+  return { bind, openProveedorModal };
 })();
