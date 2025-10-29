@@ -1,0 +1,23 @@
+<!-- Parcial de recepción para uso en modal-template -->
+<div class="card">
+  <div class="card-header">Recepción de Mercancía</div>
+  <div class="card-body">
+    <form id="formRecepcion" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
+      <div>
+        <label class="label" for="compraId">Compra #</label>
+        <input class="input" id="compraId" name="compraId" data-validate="required|number" />
+      </div>
+      <div>
+        <label class="label" for="fecha">Fecha</label>
+        <input class="input" id="fecha" name="fecha" type="date" data-validate="required" />
+      </div>
+      <div class="col-span-2">
+        <label class="label" for="observaciones">Observaciones</label>
+        <textarea id="observaciones" name="observaciones" rows="3"></textarea>
+      </div>
+      <div class="col-span-2">
+        <button type="submit" class="btn btn-primary">Registrar</button>
+      </div>
+    </form>
+  </div>
+</div>

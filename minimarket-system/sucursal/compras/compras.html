@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sucursal - Compras</title>
+  <link rel="stylesheet" href="../assets/css/variables.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+  <link rel="stylesheet" href="../assets/css/pages.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="/minimarket-system/shared/js/utils.js"></script>
+  <script src="/minimarket-system/shared/js/notifications.js"></script>
+  <script src="/minimarket-system/shared/js/api.js"></script>
+  <script src="/minimarket-system/shared/js/auth.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/forms.js"></script>
+  <script src="../assets/js/modales.js"></script>
+  <script src="../assets/js/compras.js"></script>
+</head>
+<body class="page compras-page">
+  <div id="navbar"></div>
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="container">
+      <div class="flex justify-between items-center mb-4">
+        <h1>Órdenes de Compra</h1>
+        <div>
+          <button class="btn btn-primary" data-action="new-compra">Nueva Orden de Compra</button>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="flex gap-3">
+            <select class="input" id="filtroEstado" style="width: 200px">
+              <option value="">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="recibida">Recibida</option>
+              <option value="parcial">Parcial</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="tableContainer"></div>
+    </div>
+  </main>
+  <div id="notificationsContainer"></div>
+  <div id="modalContainer"></div>
+  <script>
+    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html')
+      .then(() => Utils.loadComponent('#modalContainer', '/minimarket-system/shared/components/modal-template.html'))
+      .then(() => Compras.bindListado());
+  </script>
+</body>
+</html>

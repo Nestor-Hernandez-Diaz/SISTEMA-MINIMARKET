@@ -1,0 +1,3 @@
+/* Estilos por página Sucursal */
+.productos-page .table-actions .btn { font-size: var(--text-sm); padding: 6px 10px; }
+.caja-page .resume { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }

@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sucursal - Devoluciones</title>
+  <link rel="stylesheet" href="../assets/css/variables.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+  <link rel="stylesheet" href="../assets/css/pages.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="/minimarket-system/shared/js/utils.js"></script>
+  <script src="/minimarket-system/shared/js/notifications.js"></script>
+  <script src="/minimarket-system/shared/js/api.js"></script>
+  <script src="/minimarket-system/shared/js/auth.js"></script>
+  <script src="../assets/js/main.js"></script>
+</head>
+<body class="page ventas-page">
+  <div id="navbar"></div>
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="container">
+      <h1>Devoluciones</h1>
+      
+      <!-- Botones de navegación -->
+      <div class="actions mb-4">
+        <a class="btn" href="detalle-venta.html">Detalle de Venta</a>
+        <a class="btn" href="historial.html">Historial</a>
+      </div>
+
+      <!-- Resumen de devoluciones -->
+      <div class="resume mb-4">
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Total devoluciones</div>
+          <div class="text-danger text-lg">S/ 245.50</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Devoluciones hoy</div>
+          <div class="text-lg">3</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Productos devueltos</div>
+          <div class="text-lg">8</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Promedio por devolución</div>
+          <div class="text-lg">S/ 81.83</div>
+        </div>
+      </div>
+
+      <!-- Formulario de nueva devolución -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3>Nueva Devolución</h3>
+        </div>
+        <div class="card-content p-4">
+          <form id="formDevolucion" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+            <div class="form-group">
+              <label class="label mb-2" for="ventaId">Número de Venta</label>
+              <input class="input" id="ventaId" name="ventaId" placeholder="Ej: 001234" data-validate="required" />
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="fechaDevolucion">Fecha de devolución</label>
+              <input class="input" id="fechaDevolucion" name="fechaDevolucion" type="date" value="2024-01-15" data-validate="required" />
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="motivo">Motivo de devolución</label>
+              <select class="input" id="motivo" name="motivo" data-validate="required">
+                <option value="">Seleccionar motivo</option>
+                <option value="defectuoso">Producto defectuoso</option>
+                <option value="no-satisfecho">Cliente no satisfecho</option>
+                <option value="error-venta">Error en la venta</option>
+                <option value="vencido">Producto vencido</option>
+                <option value="otro">Otro motivo</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="montoDevolucion">Monto a devolver</label>
+              <input class="input" id="montoDevolucion" name="montoDevolucion" type="number" step="0.01" placeholder="0.00" data-validate="required|number|min:0" />
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="usuarioResponsable">Usuario responsable</label>
+              <input class="input" id="usuarioResponsable" name="usuarioResponsable" type="text" value="María González" readonly />
+            </div>
+            <div class="form-group">
+              <label class="label mb-2" for="observaciones">Observaciones</label>
+              <textarea class="input" id="observaciones" name="observaciones" rows="3" placeholder="Detalles adicionales sobre la devolución..."></textarea>
+            </div>
+            <div class="col-span-2 text-center mt-4">
+              <button type="submit" class="btn btn-primary">Registrar Devolución</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Historial de devoluciones -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Historial de Devoluciones</h3>
+        </div>
+        <div class="card-content p-4">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="p-3">Fecha</th>
+                  <th class="p-3">Venta #</th>
+                  <th class="p-3">Motivo</th>
+                  <th class="p-3">Monto</th>
+                  <th class="p-3">Usuario</th>
+                  <th class="p-3">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-3">15/01/2024</td>
+                  <td class="p-3">V-001234</td>
+                  <td class="p-3">Producto defectuoso</td>
+                  <td class="p-3 text-danger">S/ 45.50</td>
+                  <td class="p-3">María González</td>
+                  <td class="p-3"><span class="badge badge-success">Procesada</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024</td>
+                  <td class="p-3">V-001230</td>
+                  <td class="p-3">Cliente no satisfecho</td>
+                  <td class="p-3 text-danger">S/ 78.20</td>
+                  <td class="p-3">Carlos Ruiz</td>
+                  <td class="p-3"><span class="badge badge-success">Procesada</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3">14/01/2024</td>
+                  <td class="p-3">V-001225</td>
+                  <td class="p-3">Error en la venta</td>
+                  <td class="p-3 text-danger">S/ 121.80</td>
+                  <td class="p-3">María González</td>
+                  <td class="p-3"><span class="badge badge-success">Procesada</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3">13/01/2024</td>
+                  <td class="p-3">V-001220</td>
+                  <td class="p-3">Producto vencido</td>
+                  <td class="p-3 text-danger">S/ 35.00</td>
+                  <td class="p-3">Ana Torres</td>
+                  <td class="p-3"><span class="badge badge-success">Procesada</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3">12/01/2024</td>
+                  <td class="p-3">V-001215</td>
+                  <td class="p-3">Otro motivo</td>
+                  <td class="p-3 text-danger">S/ 67.90</td>
+                  <td class="p-3">María González</td>
+                  <td class="p-3"><span class="badge badge-warning">Pendiente</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3">11/01/2024</td>
+                  <td class="p-3">V-001210</td>
+                  <td class="p-3">Cliente no satisfecho</td>
+                  <td class="p-3 text-danger">S/ 89.40</td>
+                  <td class="p-3">Carlos Ruiz</td>
+                  <td class="p-3"><span class="badge badge-success">Procesada</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    $(function(){
+      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
+      $('#navbar').load('../components/navbar.html');
+      $('#sidebar').load('../components/sidebar.html');
+      
+      // Establecer fecha actual por defecto
+      const now = new Date();
+      const fecha = now.toISOString().split('T')[0];
+      $('#fechaDevolucion').val(fecha);
+      
+      // Manejar envío del formulario
+      $('#formDevolucion').on('submit', async function(e){
+        e.preventDefault();
+        const errs = Validation.validateForm($(this));
+        if (errs.length) { 
+          Notifications.show('Verifica los campos', 'warning'); 
+          return; 
+        }
+        const data = Object.fromEntries(new FormData(this).entries());
+        const res = await API.post('/ventas/devoluciones', data);
+        if (res.ok) { 
+          Notifications.show('Devolución registrada correctamente', 'success');
+          // Recargar la página para mostrar la nueva devolución
+          setTimeout(() => location.reload(), 1500);
+        }
+        else { 
+          Notifications.show('Error al registrar devolución', 'danger'); 
+        }
+      });
+    });
+  </script>
+</body>
+</html>

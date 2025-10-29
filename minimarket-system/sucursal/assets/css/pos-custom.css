@@ -1,0 +1,5 @@
+/* Estilos extras del POS */
+.pos .product { display: grid; grid-template-columns: 1fr auto; gap: var(--space-2); padding: 8px; border-bottom: 1px solid var(--color-border); }
+.pos .product .name { font-weight: 600; }
+.pos .product .price { color: var(--color-text-muted); }
+.pos .cart-item { display: grid; grid-template-columns: 1fr 80px 100px auto; gap: var(--space-2); padding: 6px 0; border-bottom: 1px solid var(--color-border); }

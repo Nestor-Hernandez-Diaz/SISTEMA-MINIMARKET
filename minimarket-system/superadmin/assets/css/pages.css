@@ -1,0 +1,76 @@
+/* Estilos por página Superadmin */
+.minimarkets-page .table-actions .btn { font-size: var(--text-sm); padding: 6px 10px; }
+.config-page .form-group { margin-bottom: var(--space-4); }
+
+/* Mejora visual general para Superadmin */
+body { background: var(--color-bg); font-family: var(--font-sans); color: var(--color-text); }
+.container { max-width: 1100px; padding: 0 var(--space-4); }
+h1 { font-size: 28px; margin: 18px 0 12px; }
+.card { background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+.card .card-header { display: flex; align-items: center; justify-content: space-between; }
+.card .card-header .btn { margin-left: var(--space-2); }
+.card .card-body { padding: var(--space-4); }
+
+/* Sidebar adjustments */
+.sidebar { padding-top: var(--space-5); }
+.sidebar .menu a { font-size: var(--text-md); padding: 12px 14px; color: var(--color-text-muted); }
+.sidebar .menu a.active { background: linear-gradient(90deg, var(--color-primary), var(--color-primary-600)); box-shadow: none; }
+
+/* Navbar brand */
+.navbar .brand .logo { display: inline-block; vertical-align: middle; margin-right: 8px; }
+.navbar .brand .brand-title { font-weight: 700; font-size: 16px; color: var(--color-text); }
+
+/* Table tweaks */
+.table th, .table td { padding: 12px 14px; }
+.table tbody tr:hover { background: rgba(15,23,42,0.02); }
+.btn-sm { padding: 6px 8px; font-size: 13px; }
+
+/* Modal tweaks */
+.modal { width: 540px; max-width: 95vw; border-radius: 12px; }
+.modal-header h3 { margin: 0; font-size: 18px; }
+.modal-footer { display: flex; gap: var(--space-2); justify-content: flex-end; }
+
+/* small helpers */
+.mt-4 { margin-top: var(--space-4); }
+
+/* Ensure modal appears above sidebar/navbar and is properly centered */
+.modal-backdrop { z-index: 60; }
+.modal { margin: 0 auto; }
+@media (max-width: 640px) {
+	.modal { width: calc(100% - 32px); margin: 0 16px; }
+}
+
+/* Market grid styles (sucursales) */
+.market-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.market-card { background: var(--color-surface); border-radius: 8px; padding: 10px; box-shadow: var(--shadow-sm); position: relative; min-height: 120px; display:flex; flex-direction:column; justify-content:space-between; }
+.market-status { position:absolute; top:8px; left:8px; padding:4px 8px; border-radius:6px; font-weight:700; font-size:12px; }
+.market-status.open { background: #10b981; color: white; }
+.market-status.closed { background: #ef4444; color: white; }
+.market-index { position:absolute; top:8px; right:8px; font-size:12px; color:var(--color-text-muted); }
+.market-name { font-weight:700; font-size:14px; margin-top:22px; }
+.market-desc { font-size:12px; color:var(--color-text-muted); margin-top:6px; min-height:40px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-clamp:2; }
+.market-actions { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.market-card .btn { padding:6px 8px; font-size:13px; }
+
+.market-admin { font-size:12px; color:var(--color-text-muted); margin-top:6px; }
+
+/* Color the entire card based on state so the whole box is green/red */
+.market-card.open { background: #ecfdf5; border: 1px solid #10b981; color: #064e3b; }
+.market-card.closed { background: #fff1f2; border: 1px solid #ef4444; color: #7f1d1d; }
+
+/* Hide the small status badge when the entire card indicates state */
+.market-card.open .market-status, .market-card.closed .market-status { display: none; }
+
+/* Ensure key text elements inherit appropriate contrast */
+.market-card.open .market-name, .market-card.open .market-desc, .market-card.open .market-admin { color: #064e3b; }
+.market-card.closed .market-name, .market-card.closed .market-desc, .market-card.closed .market-admin { color: #7f1d1d; }
+
+/* Improve layout and spacing around filters */
+.minimarkets-page h1 { margin-bottom: 12px; }
+.minimarkets-page .mb-4 { align-items: center; }
+.minimarkets-page #btnNewMarketTop { margin-right: 6px; }
+.minimarkets-page #btnSearch { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+.minimarkets-page #btnSearch:hover { opacity: .95; }
+
+/* make cards a bit larger for readability */
+@media(min-width: 1024px){ .market-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); } .market-card { min-height:150px; } }

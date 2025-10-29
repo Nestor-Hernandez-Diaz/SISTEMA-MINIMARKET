@@ -1,0 +1,4 @@
+@media print {
+  .sidebar, .navbar, .btn, .modal-backdrop { display: none !important; }
+  .main { margin: 0; }
+}

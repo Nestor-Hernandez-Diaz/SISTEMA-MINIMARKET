@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Superadmin - Administradores</title>
+  <link rel="stylesheet" href="assets/css/variables.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/pages.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="../shared/js/utils.js"></script>
+  <script src="../shared/js/notifications.js"></script>
+  <script src="../shared/js/api.js"></script>
+  <script src="../shared/js/auth.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/minimarkets.js"></script>
+  <script src="assets/js/administradores.js"></script>
+</head>
+<body class="page">
+  <div id="navbar"></div>
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="container">
+      <h1>Administradores</h1>
+      <div class="card">
+        <div class="card-header flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <input id="adminFilterSearch" class="input" placeholder="Buscar administrador por nombre o email..." style="width:360px;" />
+            <select id="adminFilterEstado" class="input" style="width:140px;">
+              <option value="">Todos</option>
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+            <button class="btn" id="btnAdminSearch">Buscar</button>
+          </div>
+          <button class="btn btn-primary" id="btnNewAdmin">Nuevo</button>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Sucursal</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody>
+              <!-- Filas generadas dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal (compartido) -->
+  <div class="modal-backdrop" id="adminModalBackdrop" style="display:none">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h3 id="modalTitle">Nuevo Administrador</h3>
+      </div>
+      <div class="modal-body">
+        <form id="formAdmin">
+          <input type="hidden" id="adminId" />
+          <label class="label" for="adminNombre">Nombre completo</label>
+          <input class="input" id="adminNombre" placeholder="Ej. José Pérez" required />
+
+          <label class="label mt-4" for="adminEmail">Email</label>
+          <input class="input" id="adminEmail" type="email" placeholder="correo@ejemplo.com" required />
+
+          <label class="label mt-4" for="adminTelefono">Teléfono</label>
+          <input class="input" id="adminTelefono" placeholder="(01) 612-3456" />
+
+          <label class="label mt-4" for="adminSucursal">Sucursal asignada</label>
+          <select id="adminSucursal" class="input">
+            <option value="central">Central</option>
+            <option value="norte">Norte</option>
+            <option value="sur">Sur</option>
+          </select>
+
+          <label class="label mt-4" for="adminRol">Rol</label>
+          <select id="adminRol" class="input">
+            <option value="administrador">Administrador</option>
+            <option value="supervisor">Supervisor</option>
+          </select>
+
+          <label class="label mt-4" for="adminEstado">Estado</label>
+          <select id="adminEstado" class="input">
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+          </select>
+
+          <div class="mt-4">
+            <label class="label">Creado</label>
+            <div id="adminCreatedAt" class="text-muted">--</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="btnCancelModal">Cancelar</button>
+        <button class="btn btn-primary" id="btnSaveAdmin">Guardar</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

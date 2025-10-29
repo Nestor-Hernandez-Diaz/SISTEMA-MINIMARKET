@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sucursal - Reporte de Caja</title>
+  <link rel="stylesheet" href="../assets/css/variables.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+  <link rel="stylesheet" href="../assets/css/pages.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="/minimarket-system/shared/js/utils.js"></script>
+  <script src="/minimarket-system/shared/js/notifications.js"></script>
+  <script src="/minimarket-system/shared/js/api.js"></script>
+  <script src="/minimarket-system/shared/js/auth.js"></script>
+  <script src="/minimarket-system/shared/js/validation.js"></script>
+  <script src="../assets/js/main.js"></script>
+</head>
+<body class="page reportes-page">
+  <div id="navbar"></div>
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="container">
+      <h1>Reporte de Caja</h1>
+      <div class="actions mb-4">
+        <a class="btn" href="reportes.html">Reportes</a>
+        <a class="btn" href="reporte-ventas.html">Ventas</a>
+        <a class="btn" href="reporte-compras.html">Compras</a>
+        <a class="btn" href="reporte-inventario.html">Inventario</a>
+      </div>
+      <form id="formCaja" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
+        <div>
+          <label class="label" for="fecha">Fecha</label>
+          <input class="input" id="fecha" name="fecha" type="date" data-validate="required" />
+        </div>
+        <div>
+          <label class="label" for="turno">Turno</label>
+          <input class="input" id="turno" name="turno" data-validate="required|min:2" />
+        </div>
+        <div class="col-span-2">
+          <button class="btn btn-primary" type="submit">Generar</button>
+        </div>
+      </form>
+    </div>
+  </main>
+  <script>
+    $(function(){
+      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
+      $('#navbar').load('../components/navbar.html');
+      $('#sidebar').load('../components/sidebar.html');
+      $('#formCaja').on('submit', async function(e){
+        e.preventDefault();
+        const errs = Validation.validateForm($(this));
+        if (errs.length) { Notifications.show('Completa los filtros', 'warning'); return; }
+        const params = Object.fromEntries(new FormData(this).entries());
+        const res = await API.get('/reportes/caja', params);
+        if (res.ok) { Notifications.show('Reporte generado', 'success'); }
+        else { Notifications.show('Error al generar reporte', 'danger'); }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<form id="formProducto">
+  <div class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
+    <div>
+      <label class="label" for="codigo">Código <span class="text-muted">(opcional)</span></label>
+      <input type="text" class="input" id="codigo" name="codigo" placeholder="SKU-001" />
+    </div>
+
+    <div>
+      <label class="label" for="nombre">Nombre <span class="text-danger">*</span></label>
+      <input type="text" class="input" id="nombre" name="nombre" required placeholder="Ej: Leche Gloria" data-validate="required|min:3" />
+    </div>
+
+    <div style="grid-column: 1 / -1">
+      <label class="label" for="descripcion">Descripción</label>
+      <textarea class="input" id="descripcion" name="descripcion" rows="3" placeholder="Descripción detallada del producto"></textarea>
+    </div>
+
+    <div>
+      <label class="label" for="categoria">Categoría</label>
+      <select class="input" id="categoria" name="categoria_id">
+        <option value="">Seleccione...</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="label" for="proveedor">Proveedor</label>
+      <select class="input" id="proveedor" name="proveedor_id">
+        <option value="">Seleccione...</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="label" for="precio">Precio de Venta <span class="text-danger">*</span></label>
+      <input type="number" class="input" id="precio" name="precio" step="0.01" min="0" required placeholder="0.00" data-validate="required|number" />
+    </div>
+
+    <div>
+      <label class="label" for="costo">Costo <span class="text-muted">(opcional)</span></label>
+      <input type="number" class="input" id="costo" name="costo" step="0.01" min="0" placeholder="0.00" />
+    </div>
+
+    <div>
+      <label class="label" for="stock">Stock Inicial</label>
+      <input type="number" class="input" id="stock" name="stock" min="0" value="0" />
+    </div>
+
+    <div>
+      <label class="label" for="stock_minimo">Stock Mínimo</label>
+      <input type="number" class="input" id="stock_minimo" name="stock_minimo" min="0" value="0" />
+    </div>
+
+    <div style="grid-column: 1 / -1">
+      <label class="flex items-center gap-2">
+        <input type="checkbox" id="activo" name="activo" checked />
+        <span>Producto activo</span>
+      </label>
+    </div>
+  </div>
+</form>
