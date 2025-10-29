@@ -22,11 +22,231 @@
   <main class="main">
     <div class="container">
       <h1>Historial de Ventas</h1>
+      
+      <!-- Botones de navegación -->
       <div class="actions mb-4">
-        <a class="btn" href="detalle-venta.html">Detalle</a>
+        <a class="btn" href="detalle-venta.html">Detalle de Venta</a>
         <a class="btn" href="devoluciones.html">Devoluciones</a>
       </div>
-      <div id="tableContainer"></div>
+
+      <!-- Filtros -->
+      <div class="filters mb-4">
+        <div class="grid" style="grid-template-columns: 1fr 1fr 1fr auto; gap: var(--space-3); align-items: end;">
+          <div>
+            <label class="label" for="fechaInicio">Fecha inicio</label>
+            <input class="input" id="fechaInicio" type="date" value="2024-01-15" />
+          </div>
+          <div>
+            <label class="label" for="fechaFin">Fecha fin</label>
+            <input class="input" id="fechaFin" type="date" value="2024-01-15" />
+          </div>
+          <div>
+            <label class="label" for="tipoVenta">Tipo de venta</label>
+            <select class="input" id="tipoVenta">
+              <option value="">Todas</option>
+              <option value="contado">Al contado</option>
+              <option value="credito">Al crédito</option>
+            </select>
+          </div>
+          <div>
+            <button class="btn btn-primary">Filtrar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de ventas -->
+      <div class="resume mb-4">
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Total ventas</div>
+          <div class="text-success text-lg">S/ 2,450.80</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Número de ventas</div>
+          <div class="text-lg">18</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Promedio por venta</div>
+          <div class="text-lg">S/ 136.16</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Ventas al contado</div>
+          <div class="text-lg">15</div>
+        </div>
+      </div>
+
+      <!-- Tabla de historial -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Historial de Ventas</h3>
+        </div>
+        <div class="card-content p-4">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="p-3">Fecha/Hora</th>
+                  <th class="p-3">Venta #</th>
+                  <th class="p-3">Cliente</th>
+                  <th class="p-3">Tipo</th>
+                  <th class="p-3">Subtotal</th>
+                  <th class="p-3">IGV</th>
+                  <th class="p-3">Total</th>
+                  <th class="p-3">Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-3">15/01/2024 16:15</td>
+                  <td class="p-3">V-001247</td>
+                  <td class="p-3">Cliente General</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 84.75</td>
+                  <td class="p-3">S/ 15.25</td>
+                  <td class="p-3 text-success">S/ 100.00</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 16:00</td>
+                  <td class="p-3">V-001246</td>
+                  <td class="p-3">Cliente General</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 160.17</td>
+                  <td class="p-3">S/ 28.83</td>
+                  <td class="p-3 text-success">S/ 189.00</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 15:30</td>
+                  <td class="p-3">V-001245</td>
+                  <td class="p-3">Juan Pérez</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 226.69</td>
+                  <td class="p-3">S/ 40.81</td>
+                  <td class="p-3 text-success">S/ 267.50</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 15:00</td>
+                  <td class="p-3">V-001244</td>
+                  <td class="p-3">Cliente General</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 132.88</td>
+                  <td class="p-3">S/ 23.92</td>
+                  <td class="p-3 text-success">S/ 156.80</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 14:30</td>
+                  <td class="p-3">V-001243</td>
+                  <td class="p-3">María López</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 75.59</td>
+                  <td class="p-3">S/ 13.61</td>
+                  <td class="p-3 text-success">S/ 89.20</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 14:00</td>
+                  <td class="p-3">V-001242</td>
+                  <td class="p-3">Cliente General</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 264.75</td>
+                  <td class="p-3">S/ 47.65</td>
+                  <td class="p-3 text-success">S/ 312.40</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 13:30</td>
+                  <td class="p-3">V-001241</td>
+                  <td class="p-3">Carlos Ruiz</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 168.39</td>
+                  <td class="p-3">S/ 30.31</td>
+                  <td class="p-3 text-success">S/ 198.70</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 12:30</td>
+                  <td class="p-3">V-001240</td>
+                  <td class="p-3">Ana Torres</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 123.14</td>
+                  <td class="p-3">S/ 22.16</td>
+                  <td class="p-3 text-success">S/ 145.30</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 12:00</td>
+                  <td class="p-3">V-001239</td>
+                  <td class="p-3">Cliente General</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 57.54</td>
+                  <td class="p-3">S/ 10.36</td>
+                  <td class="p-3 text-success">S/ 67.90</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 11:30</td>
+                  <td class="p-3">V-001238</td>
+                  <td class="p-3">Pedro Sánchez</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 198.81</td>
+                  <td class="p-3">S/ 35.79</td>
+                  <td class="p-3 text-success">S/ 234.60</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 10:30</td>
+                  <td class="p-3">V-001237</td>
+                  <td class="p-3">Cliente General</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 75.76</td>
+                  <td class="p-3">S/ 13.64</td>
+                  <td class="p-3 text-success">S/ 89.40</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 10:00</td>
+                  <td class="p-3">V-001236</td>
+                  <td class="p-3">Luis García</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 132.88</td>
+                  <td class="p-3">S/ 23.92</td>
+                  <td class="p-3 text-success">S/ 156.80</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 09:15</td>
+                  <td class="p-3">V-001235</td>
+                  <td class="p-3">Cliente General</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 66.27</td>
+                  <td class="p-3">S/ 11.93</td>
+                  <td class="p-3 text-success">S/ 78.20</td>
+                  <td class="p-3">María González</td>
+                </tr>
+                <tr>
+                  <td class="p-3">15/01/2024 08:45</td>
+                  <td class="p-3">V-001234</td>
+                  <td class="p-3">Cliente General</td>
+                  <td class="p-3"><span class="badge badge-success">Contado</span></td>
+                  <td class="p-3">S/ 38.56</td>
+                  <td class="p-3">S/ 6.94</td>
+                  <td class="p-3 text-success">S/ 45.50</td>
+                  <td class="p-3">María González</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="pagination mt-4">
+        <button class="btn btn-outline" disabled>Anterior</button>
+        <span class="pagination-info">Página 1 de 1</span>
+        <button class="btn btn-outline" disabled>Siguiente</button>
+      </div>
     </div>
   </main>
   <script>
@@ -35,7 +255,6 @@
       $('#navbar').load('../components/navbar.html');
       $('#sidebar').load('../components/sidebar.html');
     });
-    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html');
   </script>
 </body>
 </html>

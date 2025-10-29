@@ -22,11 +22,240 @@
   <main class="main">
     <div class="container">
       <h1>Detalle de Venta</h1>
+      
+      <!-- Botones de navegación -->
       <div class="actions mb-4">
         <a class="btn" href="historial.html">Historial</a>
         <a class="btn" href="devoluciones.html">Devoluciones</a>
       </div>
-      <div id="tableContainer"></div>
+
+      <!-- Información de la venta -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3>Información de la Venta</h3>
+        </div>
+        <div class="card-content p-4">
+          <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: var(--space-4);">
+            <div class="p-3">
+              <label class="label mb-2">Número de Venta</label>
+              <div class="input-static p-2">V-001247</div>
+            </div>
+            <div class="p-3">
+              <label class="label mb-2">Fecha y Hora</label>
+              <div class="input-static p-2">15/01/2024 16:15</div>
+            </div>
+            <div class="p-3">
+              <label class="label mb-2">Cliente</label>
+              <div class="input-static p-2">Cliente General</div>
+            </div>
+            <div class="p-3">
+              <label class="label mb-2">Tipo de Venta</label>
+              <div class="input-static p-2">
+                <span class="badge badge-success">Al Contado</span>
+              </div>
+            </div>
+            <div class="p-3">
+              <label class="label mb-2">Usuario</label>
+              <div class="input-static p-2">María González</div>
+            </div>
+            <div class="p-3">
+              <label class="label mb-2">Estado</label>
+              <div class="input-static p-2">
+                <span class="badge badge-success">Completada</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de la venta -->
+      <div class="resume mb-4">
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Subtotal</div>
+          <div class="text-lg">S/ 84.75</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">IGV (18%)</div>
+          <div class="text-lg">S/ 15.25</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Total</div>
+          <div class="text-success text-lg">S/ 100.00</div>
+        </div>
+        <div class="card content p-3">
+          <div class="text-muted mb-2">Productos</div>
+          <div class="text-lg">3</div>
+        </div>
+      </div>
+
+      <!-- Detalle de productos -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Productos Vendidos</h3>
+        </div>
+        <div class="card-content p-4">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="p-3">Producto</th>
+                  <th class="p-3">Código</th>
+                  <th class="p-3">Cantidad</th>
+                  <th class="p-3">Precio Unit.</th>
+                  <th class="p-3">Descuento</th>
+                  <th class="p-3">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-3">Coca Cola 500ml</td>
+                  <td class="p-3">COC-001</td>
+                  <td class="p-3">2</td>
+                  <td class="p-3">S/ 3.50</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 7.00</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Pan de Molde</td>
+                  <td class="p-3">PAN-002</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 4.50</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 4.50</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Leche Gloria 1L</td>
+                  <td class="p-3">LEC-003</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 4.20</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 4.20</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Galletas Oreo</td>
+                  <td class="p-3">GAL-004</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 5.80</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 5.80</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Arroz Superior 1kg</td>
+                  <td class="p-3">ARR-005</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 3.20</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 3.20</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Aceite Primor 900ml</td>
+                  <td class="p-3">ACE-006</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 8.50</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 8.50</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Huevos x30</td>
+                  <td class="p-3">HUE-007</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 12.00</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 12.00</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Pollo Entero</td>
+                  <td class="p-3">POL-008</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 15.50</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 15.50</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Tomate x1kg</td>
+                  <td class="p-3">TOM-009</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 3.80</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 3.80</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Cebolla x1kg</td>
+                  <td class="p-3">CEB-010</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 2.50</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 2.50</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Ajo x100g</td>
+                  <td class="p-3">AJ0-011</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 1.80</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 1.80</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Sal x500g</td>
+                  <td class="p-3">SAL-012</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 1.20</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 1.20</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Azúcar x1kg</td>
+                  <td class="p-3">AZU-013</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 3.50</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 3.50</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Fideos Spaghetti</td>
+                  <td class="p-3">FID-014</td>
+                  <td class="p-3">2</td>
+                  <td class="p-3">S/ 2.80</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 5.60</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Atún en Lata</td>
+                  <td class="p-3">ATU-015</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 4.20</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 4.20</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Café Instantáneo</td>
+                  <td class="p-3">CAF-016</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 6.50</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 6.50</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Detergente</td>
+                  <td class="p-3">DET-017</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 3.80</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 3.80</td>
+                </tr>
+                <tr>
+                  <td class="p-3">Papel Higiénico</td>
+                  <td class="p-3">PAP-018</td>
+                  <td class="p-3">1</td>
+                  <td class="p-3">S/ 2.90</td>
+                  <td class="p-3">S/ 0.00</td>
+                  <td class="p-3">S/ 2.90</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
   <script>
@@ -35,7 +264,6 @@
       $('#navbar').load('../components/navbar.html');
       $('#sidebar').load('../components/sidebar.html');
     });
-    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html');
   </script>
 </body>
 </html>
