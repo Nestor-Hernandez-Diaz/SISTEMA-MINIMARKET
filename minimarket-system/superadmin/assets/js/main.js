@@ -1,11 +1,11 @@
 $(function() {
   // Cargar componentes compartidos
-  Utils.loadComponent('#navbar', '/minimarket-system/shared/components/navbar.html').then(() => {
+  Utils.loadComponent('#navbar', '../shared/components/navbar.html').then(() => {
     const s = Auth.getSession();
     $('#navbarUser').text(s ? s.usuario : 'Invitado');
     $('#btnLogout').on('click', () => { Auth.logout(); location.href = '../superadmin/index.html'; });
   });
-  Utils.loadComponent('#sidebar', '/minimarket-system/shared/components/sidebar.html').then(() => {
+  Utils.loadComponent('#sidebar', '../shared/components/sidebar.html').then(() => {
     const path = location.pathname.split('/').pop();
     const map = {
       'dashboard.html': 'dashboard',

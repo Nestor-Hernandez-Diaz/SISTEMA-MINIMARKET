@@ -9,12 +9,14 @@
   <link rel="stylesheet" href="assets/css/components.css" />
   <link rel="stylesheet" href="assets/css/pages.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="/minimarket-system/shared/js/utils.js"></script>
-  <script src="/minimarket-system/shared/js/notifications.js"></script>
-  <script src="/minimarket-system/shared/js/api.js"></script>
-  <script src="/minimarket-system/shared/js/auth.js"></script>
+  <script src="../shared/js/utils.js"></script>
+  <script src="../shared/js/notifications.js"></script>
+  <script src="../shared/js/api.js"></script>
+  <script src="../shared/js/auth.js"></script>
   <script src="assets/js/main.js"></script>
   <script src="assets/js/tables.js"></script>
+  <script src="assets/js/administradores.js"></script>
+  <script src="assets/js/minimarkets.js"></script>
 </head>
 <body class="page minimarkets-page">
   <div id="navbar"></div>
@@ -22,15 +24,26 @@
   <main class="main">
     <div class="container">
       <h1>Minimarkets</h1>
-      <div class="flex justify-end mb-4">
-        <a class="btn btn-primary" href="minimarkets-crear.html">Nuevo</a>
+      <div class="mb-4 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="flex gap-2 items-center">
+            <input id="filterSearch" class="input" placeholder="Buscar sucursal por nombre o descripción..." style="width:420px;" />
+            <select id="filterEstado" class="input" style="width:160px; margin-left:8px;">
+              <option value="">Todos</option>
+              <option value="Activa">Activa</option>
+              <option value="Inactiva">Inactiva</option>
+            </select>
+            <button class="btn" id="btnSearch">Buscar</button>
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-primary" id="btnNewMarketTop">Nueva Sucursal</button>
+        </div>
       </div>
-      <div id="tableContainer"></div>
+      <div id="gridContainer" class="market-grid"></div>
       <div class="modal-backdrop" id="modalBackdrop" style="display:none"></div>
     </div>
   </main>
-  <script>
-    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html');
-  </script>
+  
 </body>
 </html>

@@ -10,7 +10,14 @@ window.Auth = (function() {
     return { ok: true, session };
   };
 
-  const logout = () => { localStorage.removeItem(KEY); };
+  const logout = () => {
+    localStorage.removeItem(KEY);
+    try {
+      // clear session-scoped stores (admins and minimarkets) on logout
+      sessionStorage.removeItem('mm_admins');
+      sessionStorage.removeItem('mm_minimarkets');
+    } catch (e) { /* ignore */ }
+  };
   const getSession = () => {
     try { return JSON.parse(localStorage.getItem(KEY) || 'null'); }
     catch { return null; }
