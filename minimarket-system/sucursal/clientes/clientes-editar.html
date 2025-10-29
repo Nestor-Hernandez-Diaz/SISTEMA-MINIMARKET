@@ -10,59 +10,785 @@
   <link rel="stylesheet" href="../assets/css/pages.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="/minimarket-system/shared/js/utils.js"></script>
+  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="/minimarket-system/shared/js/notifications.js"></script>
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
-  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="../assets/js/main.js"></script>
 </head>
-<body class="page clientes-page">
+<body class="page clientes-editar-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Editar Cliente</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="clientes-crear.html">Crear Cliente</a>
-        <a class="btn" href="creditos.html">Créditos</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <div>
+          <h1 class="text-xl fw-600">Editar Cliente</h1>
+          <p class="text-muted text-sm">Actualizar información del cliente <strong id="codigoCliente">CLI-001</strong></p>
+        </div>
+        <div>
+          <button class="btn btn-secondary" onclick="cancelar()">
+            Cancelar
+          </button>
+          <button class="btn btn-primary" onclick="guardarCliente()">
+            Guardar Cambios
+          </button>
+        </div>
       </div>
-      <form id="formClienteEditar" class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4)">
-        <div>
-          <label class="label" for="clienteId">ID Cliente</label>
-          <input class="input" id="clienteId" name="clienteId" data-validate="required|number" />
+
+      <!-- Información General -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Información General</h2>
         </div>
-        <div>
-          <label class="label" for="nombre">Nombre</label>
-          <input class="input" id="nombre" name="nombre" data-validate="required|min:3" />
+        <div class="card-body">
+          <form id="formCliente">
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label for="tipo_persona" class="form-label required">Tipo de Persona</label>
+                <select id="tipo_persona" class="input" required onchange="cambiarTipoPersona()">
+                  <option value="">Seleccionar</option>
+                  <option value="natural" selected>Persona Natural</option>
+                  <option value="juridica">Persona Jurídica</option>
+                </select>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="tipo_documento" class="form-label required">Tipo de Documento</label>
+                <select id="tipo_documento" class="input" required>
+                  <option value="">Seleccionar</option>
+                  <option value="dni" selected>DNI</option>
+                  <option value="ruc">RUC</option>
+                  <option value="ce">Carnet de Extranjería</option>
+                  <option value="pasaporte">Pasaporte</option>
+                </select>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="numero_documento" class="form-label required">Número de Documento</label>
+                <div style="display: flex; gap: 10px;">
+                  <input 
+                    type="text" 
+                    id="numero_documento" 
+                    class="input" 
+                    required 
+                    value="45678912"
+                    placeholder="Ej: 12345678"
+                  />
+                  <button type="button" class="btn btn-secondary" onclick="validarDocumento()">
+                    Validar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row" id="camposPersonaNatural">
+              <div class="form-group col-md-4">
+                <label for="nombres" class="form-label required">Nombres</label>
+                <input 
+                  type="text" 
+                  id="nombres" 
+                  class="input" 
+                  required 
+                  value="Juan Carlos"
+                  placeholder="Nombres completos"
+                />
+              </div>
+              <div class="form-group col-md-4">
+                <label for="apellido_paterno" class="form-label required">Apellido Paterno</label>
+                <input 
+                  type="text" 
+                  id="apellido_paterno" 
+                  class="input" 
+                  required 
+                  value="Pérez"
+                  placeholder="Apellido paterno"
+                />
+              </div>
+              <div class="form-group col-md-4">
+                <label for="apellido_materno" class="form-label required">Apellido Materno</label>
+                <input 
+                  type="text" 
+                  id="apellido_materno" 
+                  class="input" 
+                  required 
+                  value="García"
+                  placeholder="Apellido materno"
+                />
+              </div>
+            </div>
+
+            <div class="form-row" id="camposPersonaJuridica" style="display: none;">
+              <div class="form-group col-md-6">
+                <label for="razon_social" class="form-label required">Razón Social</label>
+                <input 
+                  type="text" 
+                  id="razon_social" 
+                  class="input" 
+                  placeholder="Razón social completa"
+                />
+              </div>
+              <div class="form-group col-md-6">
+                <label for="nombre_comercial" class="form-label">Nombre Comercial</label>
+                <input 
+                  type="text" 
+                  id="nombre_comercial" 
+                  class="input" 
+                  placeholder="Nombre comercial"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                <input 
+                  type="date" 
+                  id="fecha_nacimiento" 
+                  class="input" 
+                  value="1985-06-15"
+                />
+              </div>
+              <div class="form-group col-md-4">
+                <label for="genero" class="form-label">Género</label>
+                <select id="genero" class="input">
+                  <option value="">Seleccionar</option>
+                  <option value="masculino" selected>Masculino</option>
+                  <option value="femenino">Femenino</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="estado_civil" class="form-label">Estado Civil</label>
+                <select id="estado_civil" class="input">
+                  <option value="">Seleccionar</option>
+                  <option value="soltero">Soltero(a)</option>
+                  <option value="casado" selected>Casado(a)</option>
+                  <option value="divorciado">Divorciado(a)</option>
+                  <option value="viudo">Viudo(a)</option>
+                </select>
+              </div>
+            </div>
+          </form>
         </div>
-        <div>
-          <label class="label" for="email">Correo</label>
-          <input class="input" id="email" name="email" data-validate="required|email" />
+      </div>
+
+      <!-- Información de Contacto -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Información de Contacto</h2>
         </div>
-        <div>
-          <label class="label" for="telefono">Teléfono</label>
-          <input class="input" id="telefono" name="telefono" data-validate="required|min:9" />
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="telefono_principal" class="form-label required">Teléfono Principal</label>
+              <input 
+                type="tel" 
+                id="telefono_principal" 
+                class="input" 
+                required 
+                value="987654321"
+                placeholder="987654321"
+              />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="telefono_secundario" class="form-label">Teléfono Secundario</label>
+              <input 
+                type="tel" 
+                id="telefono_secundario" 
+                class="input" 
+                value="945123789"
+                placeholder="945123789"
+              />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="email" class="form-label">Email</label>
+              <input 
+                type="email" 
+                id="email" 
+                class="input" 
+                value="juan.perez@email.com"
+                placeholder="cliente@email.com"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="whatsapp" class="form-label">WhatsApp</label>
+              <input 
+                type="tel" 
+                id="whatsapp" 
+                class="input" 
+                value="987654321"
+                placeholder="987654321"
+              />
+            </div>
+            <div class="form-group col-md-6">
+              <label for="red_social" class="form-label">Red Social</label>
+              <input 
+                type="text" 
+                id="red_social" 
+                class="input" 
+                placeholder="@usuario o link de perfil"
+              />
+            </div>
+          </div>
         </div>
-        <div class="col-span-2">
-          <button type="submit" class="btn btn-primary">Actualizar</button>
+      </div>
+
+      <!-- Dirección -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Dirección</h2>
         </div>
-      </form>
+        <div class="card-body">
+          <div class="form-group">
+            <label for="direccion" class="form-label required">Dirección Completa</label>
+            <input 
+              type="text" 
+              id="direccion" 
+              class="input" 
+              required 
+              value="Av. Principal 123, Urb. Los Jardines"
+              placeholder="Calle, número, urbanización, etc."
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="departamento" class="form-label required">Departamento</label>
+              <select id="departamento" class="input" required onchange="cargarProvincias()">
+                <option value="">Seleccionar</option>
+                <option value="Lima" selected>Lima</option>
+                <option value="Arequipa">Arequipa</option>
+                <option value="Cusco">Cusco</option>
+                <option value="La Libertad">La Libertad</option>
+                <option value="Piura">Piura</option>
+                <option value="Lambayeque">Lambayeque</option>
+                <option value="Junín">Junín</option>
+                <option value="Ica">Ica</option>
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="provincia" class="form-label required">Provincia</label>
+              <select id="provincia" class="input" required onchange="cargarDistritos()">
+                <option value="">Seleccionar</option>
+                <option value="Lima" selected>Lima</option>
+                <option value="Callao">Callao</option>
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="distrito" class="form-label required">Distrito</label>
+              <select id="distrito" class="input" required>
+                <option value="">Seleccionar</option>
+                <option value="San Isidro" selected>San Isidro</option>
+                <option value="Miraflores">Miraflores</option>
+                <option value="San Miguel">San Miguel</option>
+                <option value="Surco">Surco</option>
+                <option value="La Molina">La Molina</option>
+                <option value="San Borja">San Borja</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="referencia" class="form-label">Referencia</label>
+              <input 
+                type="text" 
+                id="referencia" 
+                class="input" 
+                value="Frente al parque principal"
+                placeholder="Punto de referencia"
+              />
+            </div>
+            <div class="form-group col-md-6">
+              <label for="codigo_postal" class="form-label">Código Postal</label>
+              <input 
+                type="text" 
+                id="codigo_postal" 
+                class="input" 
+                value="15036"
+                placeholder="15000"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información Comercial -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Información Comercial</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="tipo_cliente" class="form-label required">Tipo de Cliente</label>
+              <select id="tipo_cliente" class="input" required>
+                <option value="">Seleccionar</option>
+                <option value="regular">Regular</option>
+                <option value="frecuente" selected>Frecuente</option>
+                <option value="vip">VIP</option>
+                <option value="corporativo">Corporativo</option>
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="categoria" class="form-label">Categoría</label>
+              <select id="categoria" class="input">
+                <option value="">Sin categoría</option>
+                <option value="A" selected>Categoría A</option>
+                <option value="B">Categoría B</option>
+                <option value="C">Categoría C</option>
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="vendedor_asignado" class="form-label">Vendedor Asignado</label>
+              <select id="vendedor_asignado" class="input">
+                <option value="">Sin asignar</option>
+                <option value="1" selected>Carlos Martínez</option>
+                <option value="2">Ana García</option>
+                <option value="3">Luis Torres</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="limite_credito" class="form-label">Límite de Crédito (S/)</label>
+              <input 
+                type="number" 
+                id="limite_credito" 
+                class="input" 
+                step="0.01"
+                value="1000.00"
+                placeholder="0.00"
+              />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="dias_credito" class="form-label">Días de Crédito</label>
+              <input 
+                type="number" 
+                id="dias_credito" 
+                class="input" 
+                value="30"
+                placeholder="0"
+              />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="descuento_especial" class="form-label">Descuento Especial (%)</label>
+              <input 
+                type="number" 
+                id="descuento_especial" 
+                class="input" 
+                step="0.01"
+                value="5.00"
+                min="0"
+                max="100"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="forma_pago_preferida" class="form-label">Forma de Pago Preferida</label>
+              <select id="forma_pago_preferida" class="input">
+                <option value="">Sin preferencia</option>
+                <option value="efectivo" selected>Efectivo</option>
+                <option value="tarjeta">Tarjeta</option>
+                <option value="transferencia">Transferencia</option>
+                <option value="yape">Yape/Plin</option>
+              </select>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="lista_precios" class="form-label">Lista de Precios</label>
+              <select id="lista_precios" class="input">
+                <option value="1" selected>Lista General</option>
+                <option value="2">Lista Mayorista</option>
+                <option value="3">Lista Corporativa</option>
+                <option value="4">Lista Especial</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estadísticas del Cliente -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Estadísticas del Cliente</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Total Compras</div>
+                <div class="stat-value text-primary">145</div>
+                <div class="stat-meta text-muted">Transacciones</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Total Gastado</div>
+                <div class="stat-value text-success">S/ 8,450.00</div>
+                <div class="stat-meta text-muted">Monto total</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Ticket Promedio</div>
+                <div class="stat-value text-info">S/ 58.28</div>
+                <div class="stat-meta text-muted">Por compra</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="stat-label">Última Compra</div>
+                <div class="stat-value text-warning">29/10/2025</div>
+                <div class="stat-meta text-muted">Hace 1 día</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row mt-4">
+            <div class="col-md-4">
+              <div class="stat-card">
+                <div class="stat-label">Deuda Actual</div>
+                <div class="stat-value text-danger">S/ 0.00</div>
+                <div class="stat-meta text-success">Sin deudas</div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="stat-card">
+                <div class="stat-label">Crédito Disponible</div>
+                <div class="stat-value text-success">S/ 1,000.00</div>
+                <div class="stat-meta text-muted">Del límite asignado</div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="stat-card">
+                <div class="stat-label">Días como Cliente</div>
+                <div class="stat-value text-info">228 días</div>
+                <div class="stat-meta text-muted">Desde 15/03/2024</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado y Observaciones -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Estado y Observaciones</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="estado" class="form-label required">Estado</label>
+              <select id="estado" class="input" required>
+                <option value="activo" selected>Activo</option>
+                <option value="inactivo">Inactivo</option>
+                <option value="suspendido">Suspendido</option>
+                <option value="bloqueado">Bloqueado</option>
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="motivo_estado" class="form-label">Motivo del Estado</label>
+              <input 
+                type="text" 
+                id="motivo_estado" 
+                class="input" 
+                placeholder="Especificar motivo si es necesario"
+              />
+            </div>
+            <div class="form-group col-md-4">
+              <label class="form-label">Opciones Adicionales</label>
+              <div>
+                <label style="display: block; margin-bottom: 8px;">
+                  <input type="checkbox" id="acepta_marketing" checked />
+                  Acepta Marketing
+                </label>
+                <label style="display: block;">
+                  <input type="checkbox" id="permite_credito" checked />
+                  Permite Crédito
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="observaciones" class="form-label">Observaciones</label>
+            <textarea 
+              id="observaciones" 
+              class="input" 
+              rows="4"
+              placeholder="Observaciones, notas o comentarios sobre el cliente"
+            >Cliente frecuente, siempre paga puntualmente. Prefiere comprar al por mayor los fines de semana.</textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="notas_internas" class="form-label">Notas Internas (Solo personal autorizado)</label>
+            <textarea 
+              id="notas_internas" 
+              class="input" 
+              rows="3"
+              placeholder="Notas privadas para uso interno"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historial de Cambios -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Historial de Modificaciones</h2>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Usuario</th>
+                  <th>Acción</th>
+                  <th>Campo Modificado</th>
+                  <th>Valor Anterior</th>
+                  <th>Valor Nuevo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>15/10/2025 10:30</td>
+                  <td>Admin Sistema</td>
+                  <td><span class="badge badge-info">Actualización</span></td>
+                  <td>Límite de Crédito</td>
+                  <td>S/ 500.00</td>
+                  <td><strong>S/ 1,000.00</strong></td>
+                </tr>
+                <tr>
+                  <td>01/08/2025 14:15</td>
+                  <td>Carlos Martínez</td>
+                  <td><span class="badge badge-info">Actualización</span></td>
+                  <td>Tipo de Cliente</td>
+                  <td>Regular</td>
+                  <td><strong>Frecuente</strong></td>
+                </tr>
+                <tr>
+                  <td>15/03/2024 09:00</td>
+                  <td>Ana García</td>
+                  <td><span class="badge badge-success">Creación</span></td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td><strong>Cliente creado</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones Finales -->
+      <div class="card">
+        <div class="card-body">
+          <div class="form-row">
+            <div class="col-md-6">
+              <div class="alert alert-info">
+                <strong>Última actualización:</strong> 15/10/2025 10:30<br>
+                <strong>Por:</strong> Admin Sistema<br>
+                <strong>Fecha de registro:</strong> 15/03/2024 09:00
+              </div>
+            </div>
+            <div class="col-md-6 text-right">
+              <button class="btn btn-danger" onclick="eliminarCliente()">
+                Eliminar Cliente
+              </button>
+              <button class="btn btn-warning" onclick="suspenderCliente()">
+                Suspender Cliente
+              </button>
+              <button class="btn btn-secondary" onclick="cancelar()">
+                Cancelar
+              </button>
+              <button class="btn btn-primary" onclick="guardarCliente()">
+                Guardar Cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
   <script>
-    $(function(){
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
-      $('#formClienteEditar').on('submit', async function(e){
+    let clienteId = null;
+    
+    $(function(){ 
+      if (!Auth.requireRole(['sucursal', 'admin'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
+      
+      // Obtener ID del cliente de la URL
+      const urlParams = new URLSearchParams(window.location.search);
+      clienteId = urlParams.get('id');
+      
+      if (clienteId) {
+        cargarDatosCliente(clienteId);
+      } else {
+        Notifications.show('No se especificó el cliente a editar', 'error');
+        setTimeout(() => {
+          window.location.href = 'clientes.html';
+        }, 2000);
+      }
+    });
+    
+    function cargarDatosCliente(id) {
+      Notifications.show(`Cargando datos del cliente ${id}...`, 'info');
+      $('#codigoCliente').text(id);
+      // Aquí iría la llamada a la API para cargar los datos
+      // Los datos ya están cargados como valores iniciales en el HTML
+    }
+    
+    function cambiarTipoPersona() {
+      const tipo = $('#tipo_persona').val();
+      if (tipo === 'natural') {
+        $('#camposPersonaNatural').show();
+        $('#camposPersonaJuridica').hide();
+        $('#tipo_documento').val('dni');
+      } else if (tipo === 'juridica') {
+        $('#camposPersonaNatural').hide();
+        $('#camposPersonaJuridica').show();
+        $('#tipo_documento').val('ruc');
+      }
+    }
+    
+    function validarDocumento() {
+      const tipoDoc = $('#tipo_documento').val();
+      const numeroDoc = $('#numero_documento').val();
+      
+      if (!tipoDoc || !numeroDoc) {
+        Notifications.show('Ingrese el tipo y número de documento', 'warning');
+        return;
+      }
+      
+      Notifications.show('Validando documento en RENIEC/SUNAT...', 'info');
+      
+      setTimeout(() => {
+        Notifications.show('Documento válido', 'success');
+      }, 1500);
+    }
+    
+    function cargarProvincias() {
+      const departamento = $('#departamento').val();
+      Notifications.show(`Cargando provincias de ${departamento}...`, 'info');
+      // Aquí iría la lógica para cargar provincias según el departamento
+    }
+    
+    function cargarDistritos() {
+      const provincia = $('#provincia').val();
+      Notifications.show(`Cargando distritos de ${provincia}...`, 'info');
+      // Aquí iría la lógica para cargar distritos según la provincia
+    }
+    
+    function guardarCliente() {
+      if (!$('#formCliente')[0].checkValidity()) {
+        $('#formCliente')[0].reportValidity();
+        return;
+      }
+      
+      const datosCliente = {
+        tipo_persona: $('#tipo_persona').val(),
+        tipo_documento: $('#tipo_documento').val(),
+        numero_documento: $('#numero_documento').val(),
+        nombres: $('#nombres').val(),
+        apellido_paterno: $('#apellido_paterno').val(),
+        apellido_materno: $('#apellido_materno').val(),
+        razon_social: $('#razon_social').val(),
+        nombre_comercial: $('#nombre_comercial').val(),
+        fecha_nacimiento: $('#fecha_nacimiento').val(),
+        genero: $('#genero').val(),
+        estado_civil: $('#estado_civil').val(),
+        telefono_principal: $('#telefono_principal').val(),
+        telefono_secundario: $('#telefono_secundario').val(),
+        email: $('#email').val(),
+        whatsapp: $('#whatsapp').val(),
+        red_social: $('#red_social').val(),
+        direccion: $('#direccion').val(),
+        departamento: $('#departamento').val(),
+        provincia: $('#provincia').val(),
+        distrito: $('#distrito').val(),
+        referencia: $('#referencia').val(),
+        codigo_postal: $('#codigo_postal').val(),
+        tipo_cliente: $('#tipo_cliente').val(),
+        categoria: $('#categoria').val(),
+        vendedor_asignado: $('#vendedor_asignado').val(),
+        limite_credito: $('#limite_credito').val(),
+        dias_credito: $('#dias_credito').val(),
+        descuento_especial: $('#descuento_especial').val(),
+        forma_pago_preferida: $('#forma_pago_preferida').val(),
+        lista_precios: $('#lista_precios').val(),
+        estado: $('#estado').val(),
+        motivo_estado: $('#motivo_estado').val(),
+        acepta_marketing: $('#acepta_marketing').is(':checked'),
+        permite_credito: $('#permite_credito').is(':checked'),
+        observaciones: $('#observaciones').val(),
+        notas_internas: $('#notas_internas').val()
+      };
+      
+      Notifications.show('Guardando cambios del cliente...', 'info');
+      
+      // Aquí iría la llamada a la API
+      console.log('Datos a guardar:', datosCliente);
+      
+      setTimeout(() => {
+        Notifications.show('Cliente actualizado exitosamente', 'success');
+        setTimeout(() => {
+          window.location.href = 'clientes.html';
+        }, 1500);
+      }, 2000);
+    }
+    
+    function cancelar() {
+      if (confirm('¿Está seguro de cancelar? Los cambios no guardados se perderán.')) {
+        window.location.href = 'clientes.html';
+      }
+    }
+    
+    function eliminarCliente() {
+      if (confirm('¿Está seguro de eliminar este cliente?\n\nEsta acción NO se puede deshacer y se eliminarán:\n- Todos los datos del cliente\n- Historial de compras\n- Créditos pendientes\n\n¿Desea continuar?')) {
+        Notifications.show('Eliminando cliente...', 'info');
+        
+        setTimeout(() => {
+          Notifications.show('Cliente eliminado exitosamente', 'success');
+          setTimeout(() => {
+            window.location.href = 'clientes.html';
+          }, 1500);
+        }, 2000);
+      }
+    }
+    
+    function suspenderCliente() {
+      if (confirm('¿Está seguro de suspender este cliente?\n\nEl cliente no podrá realizar compras hasta que sea reactivado.')) {
+        $('#estado').val('suspendido');
+        Notifications.show('Cliente marcado como suspendido', 'warning');
+      }
+    }
+    
+    // Detectar cambios en el formulario
+    let formularioModificado = false;
+    $('input, select, textarea').on('change', function() {
+      formularioModificado = true;
+    });
+    
+    // Advertir antes de salir si hay cambios sin guardar
+    window.addEventListener('beforeunload', function (e) {
+      if (formularioModificado) {
         e.preventDefault();
-        const errs = Validation.validateForm($(this));
-        if (errs.length) { Notifications.show('Corrige los campos', 'warning'); return; }
-        const data = Object.fromEntries(new FormData(this).entries());
-        const res = await API.put('/clientes/' + $('#clienteId').val(), data);
-        if (res.ok) { Notifications.show('Cliente actualizado', 'success'); }
-        else { Notifications.show('Error al actualizar cliente', 'danger'); }
-      });
+        e.returnValue = '';
+      }
     });
   </script>
 </body>

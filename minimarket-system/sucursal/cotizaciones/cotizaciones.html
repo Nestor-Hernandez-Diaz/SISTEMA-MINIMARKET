@@ -3,39 +3,837 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sucursal - Cotizaciones</title>
+  <title>Sucursal - Gestión de Cotizaciones</title>
   <link rel="stylesheet" href="../assets/css/variables.css" />
   <link rel="stylesheet" href="../assets/css/layout.css" />
   <link rel="stylesheet" href="../assets/css/components.css" />
   <link rel="stylesheet" href="../assets/css/pages.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="/minimarket-system/shared/js/utils.js"></script>
+  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="/minimarket-system/shared/js/notifications.js"></script>
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
   <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/tables.js"></script>
 </head>
 <body class="page cotizaciones-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Cotizaciones</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="cotizaciones-crear.html">Nueva Cotización</a>
-        <a class="btn" href="cotizaciones-detalle.html">Detalle</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <div>
+          <h1 class="text-xl fw-600">Gestión de Cotizaciones</h1>
+          <p class="text-muted text-sm">Administración de cotizaciones y presupuestos</p>
+        </div>
+        <div>
+          <button class="btn btn-secondary" onclick="exportarCotizaciones()">
+            Exportar
+          </button>
+          <button class="btn btn-primary" onclick="window.location.href='cotizaciones-crear.html'">
+            Nueva Cotización
+          </button>
+        </div>
       </div>
-      <div id="tableContainer"></div>
+
+      <!-- Estadísticas de Cotizaciones -->
+      <div class="stats-grid mb-4">
+        <div class="stat-card">
+          <div class="stat-icon bg-primary">📋</div>
+          <div class="stat-content">
+            <div class="stat-label">Total Cotizaciones</div>
+            <div class="stat-value">156</div>
+            <div class="stat-change text-info">Este mes: 42</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-warning">⏳</div>
+          <div class="stat-content">
+            <div class="stat-label">Pendientes</div>
+            <div class="stat-value">28</div>
+            <div class="stat-change text-warning">Esperando respuesta</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-success">✓</div>
+          <div class="stat-content">
+            <div class="stat-label">Aprobadas</div>
+            <div class="stat-value">89</div>
+            <div class="stat-change text-success">57% de conversión</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-info">S/</div>
+          <div class="stat-content">
+            <div class="stat-label">Valor Total</div>
+            <div class="stat-value">S/ 125,450.00</div>
+            <div class="stat-change text-info">Cotizaciones activas</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico de Cotizaciones -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Estado de Cotizaciones</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="col-md-6">
+              <canvas id="graficoCotizaciones" style="max-height: 300px;"></canvas>
+            </div>
+            <div class="col-md-6">
+              <div class="stats-list">
+                <div class="stat-item">
+                  <div class="stat-item-label">
+                    <span class="badge badge-warning">Pendientes</span>
+                  </div>
+                  <div class="stat-item-value">
+                    <strong>28 cotizaciones</strong>
+                    <div class="text-sm text-muted">S/ 34,500.00</div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-item-label">
+                    <span class="badge badge-success">Aprobadas</span>
+                  </div>
+                  <div class="stat-item-value">
+                    <strong>89 cotizaciones</strong>
+                    <div class="text-sm text-muted">S/ 78,950.00</div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-item-label">
+                    <span class="badge badge-danger">Rechazadas</span>
+                  </div>
+                  <div class="stat-item-value">
+                    <strong>25 cotizaciones</strong>
+                    <div class="text-sm text-muted">S/ 15,200.00</div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-item-label">
+                    <span class="badge badge-secondary">Vencidas</span>
+                  </div>
+                  <div class="stat-item-value">
+                    <strong>14 cotizaciones</strong>
+                    <div class="text-sm text-muted">S/ 12,000.00</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pestañas -->
+      <div class="tabs-container mb-4">
+        <div class="tabs">
+          <button class="tab active" onclick="cambiarTab('todas')">
+            Todas
+          </button>
+          <button class="tab" onclick="cambiarTab('pendientes')">
+            Pendientes (28)
+          </button>
+          <button class="tab" onclick="cambiarTab('aprobadas')">
+            Aprobadas (89)
+          </button>
+          <button class="tab" onclick="cambiarTab('rechazadas')">
+            Rechazadas (25)
+          </button>
+          <button class="tab" onclick="cambiarTab('vencidas')">
+            Vencidas (14)
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Filtros de Búsqueda</h2>
+        </div>
+        <div class="card-body">
+          <form id="formFiltros" class="form-row">
+            <div class="form-group">
+              <label for="buscar" class="form-label">Buscar</label>
+              <input 
+                type="text" 
+                id="buscar" 
+                class="input" 
+                placeholder="Cliente, N° cotización..." 
+              />
+            </div>
+            <div class="form-group">
+              <label for="estado" class="form-label">Estado</label>
+              <select id="estado" class="input">
+                <option value="">Todos</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="aprobada">Aprobada</option>
+                <option value="rechazada">Rechazada</option>
+                <option value="vencida">Vencida</option>
+                <option value="convertida">Convertida a Venta</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="fecha_desde" class="form-label">Fecha Desde</label>
+              <input 
+                type="date" 
+                id="fecha_desde" 
+                class="input" 
+              />
+            </div>
+            <div class="form-group">
+              <label for="fecha_hasta" class="form-label">Fecha Hasta</label>
+              <input 
+                type="date" 
+                id="fecha_hasta" 
+                class="input" 
+              />
+            </div>
+            <div class="form-group">
+              <label for="ordenar" class="form-label">Ordenar por</label>
+              <select id="ordenar" class="input">
+                <option value="fecha_desc">Más reciente</option>
+                <option value="fecha_asc">Más antigua</option>
+                <option value="monto_desc">Mayor monto</option>
+                <option value="monto_asc">Menor monto</option>
+                <option value="cliente">Cliente A-Z</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary" style="margin-top: 27px;">
+                Buscar
+              </button>
+              <button type="button" class="btn btn-secondary" style="margin-top: 27px;" onclick="limpiarFiltros()">
+                Limpiar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tabla de Cotizaciones -->
+      <div class="card" style="width: 100%; clear: both;">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Lista de Cotizaciones</h2>
+          <div>
+            <button class="btn btn-success btn-sm" onclick="exportarExcel()">
+              Exportar Excel
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="exportarPDF()">
+              Exportar PDF
+            </button>
+          </div>
+        </div>
+        <div class="card-body" style="overflow-x: auto;">
+          <div class="table-actions mb-3">
+            <div class="table-info">
+              Mostrando <strong>15</strong> de <strong>156</strong> cotizaciones
+            </div>
+            <div>
+              <select class="input" style="width: auto; display: inline-block;">
+                <option>15 por página</option>
+                <option>30 por página</option>
+                <option>50 por página</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table" id="tablaCotizaciones">
+              <thead>
+                <tr>
+                  <th style="width: 40px;">
+                    <input type="checkbox" id="selectAll" onclick="seleccionarTodos()" />
+                  </th>
+                  <th style="min-width: 100px;">N° Cotización</th>
+                  <th style="min-width: 180px;">Cliente</th>
+                  <th style="min-width: 100px;">Fecha Emisión</th>
+                  <th style="min-width: 100px;">Válido Hasta</th>
+                  <th style="min-width: 100px;">Total</th>
+                  <th style="min-width: 90px;">Estado</th>
+                  <th style="min-width: 80px;">Días</th>
+                  <th style="min-width: 120px;">Vendedor</th>
+                  <th style="min-width: 250px;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="table-warning">
+                  <td><input type="checkbox" class="select-cotizacion" /></td>
+                  <td><strong>COT-00156</strong></td>
+                  <td>
+                    <div>
+                      <strong>Juan Pérez García</strong>
+                      <div class="text-sm text-muted">DNI: 45678912</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>25/10/2025</div>
+                    <div class="text-sm text-muted">Hace 4 días</div>
+                  </td>
+                  <td>
+                    <div>08/11/2025</div>
+                    <div class="text-sm text-warning">En 10 días</div>
+                  </td>
+                  <td><strong>S/ 2,450.00</strong></td>
+                  <td><span class="badge badge-warning">Pendiente</span></td>
+                  <td><span class="text-warning">10 días</span></td>
+                  <td>
+                    <div class="text-sm">Carlos M.</div>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('COT-00156')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="editarCotizacion('COT-00156')" title="Editar">
+                      Editar
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="convertirVenta('COT-00156')" title="Convertir a Venta">
+                      Vender
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="enviarCotizacion('COT-00156')" title="Enviar">
+                      Enviar
+                    </button>
+                  </td>
+                </tr>
+                <tr class="table-success">
+                  <td><input type="checkbox" class="select-cotizacion" /></td>
+                  <td><strong>COT-00155</strong></td>
+                  <td>
+                    <div>
+                      <strong>María García Torres</strong>
+                      <div class="text-sm text-muted">DNI: 78945612</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>22/10/2025</div>
+                    <div class="text-sm text-muted">Hace 7 días</div>
+                  </td>
+                  <td>
+                    <div>05/11/2025</div>
+                    <div class="text-sm text-success">En 7 días</div>
+                  </td>
+                  <td><strong>S/ 1,850.00</strong></td>
+                  <td><span class="badge badge-success">Aprobada</span></td>
+                  <td><span class="text-success">7 días</span></td>
+                  <td>
+                    <div class="text-sm">Ana G.</div>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('COT-00155')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="convertirVenta('COT-00155')" title="Convertir a Venta">
+                      Vender
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="imprimirCotizacion('COT-00155')" title="Imprimir">
+                      Imprimir
+                    </button>
+                  </td>
+                </tr>
+                <tr class="table-danger">
+                  <td><input type="checkbox" class="select-cotizacion" /></td>
+                  <td><strong>COT-00154</strong></td>
+                  <td>
+                    <div>
+                      <strong>Comercial López SAC</strong>
+                      <div class="text-sm text-muted">RUC: 20456789123</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>18/10/2025</div>
+                    <div class="text-sm text-muted">Hace 11 días</div>
+                  </td>
+                  <td>
+                    <div>01/11/2025</div>
+                    <div class="text-sm text-danger">En 3 días</div>
+                  </td>
+                  <td><strong>S/ 5,200.00</strong></td>
+                  <td><span class="badge badge-danger">Rechazada</span></td>
+                  <td><span class="text-danger">3 días</span></td>
+                  <td>
+                    <div class="text-sm">Luis T.</div>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('COT-00154')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="duplicarCotizacion('COT-00154')" title="Duplicar">
+                      Duplicar
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="eliminarCotizacion('COT-00154')" title="Eliminar">
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="select-cotizacion" /></td>
+                  <td><strong>COT-00153</strong></td>
+                  <td>
+                    <div>
+                      <strong>Roberto Sánchez Díaz</strong>
+                      <div class="text-sm text-muted">DNI: 12345678</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>20/10/2025</div>
+                    <div class="text-sm text-muted">Hace 9 días</div>
+                  </td>
+                  <td>
+                    <div>10/11/2025</div>
+                    <div class="text-sm text-success">En 12 días</div>
+                  </td>
+                  <td><strong>S/ 980.00</strong></td>
+                  <td><span class="badge badge-info">Convertida</span></td>
+                  <td><span class="text-success">12 días</span></td>
+                  <td>
+                    <div class="text-sm">Carlos M.</div>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('COT-00153')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="verVenta('COT-00153')" title="Ver Venta">
+                      Ver Venta
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="imprimirCotizacion('COT-00153')" title="Imprimir">
+                      Imprimir
+                    </button>
+                  </td>
+                </tr>
+                <tr class="table-warning">
+                  <td><input type="checkbox" class="select-cotizacion" /></td>
+                  <td><strong>COT-00152</strong></td>
+                  <td>
+                    <div>
+                      <strong>Ana Rodríguez Vega</strong>
+                      <div class="text-sm text-muted">DNI: 87654321</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>24/10/2025</div>
+                    <div class="text-sm text-muted">Hace 5 días</div>
+                  </td>
+                  <td>
+                    <div>07/11/2025</div>
+                    <div class="text-sm text-warning">En 9 días</div>
+                  </td>
+                  <td><strong>S/ 1,350.00</strong></td>
+                  <td><span class="badge badge-warning">Pendiente</span></td>
+                  <td><span class="text-warning">9 días</span></td>
+                  <td>
+                    <div class="text-sm">Ana G.</div>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('COT-00152')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="editarCotizacion('COT-00152')" title="Editar">
+                      Editar
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="convertirVenta('COT-00152')" title="Convertir a Venta">
+                      Vender
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="enviarCotizacion('COT-00152')" title="Enviar">
+                      Enviar
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="select-cotizacion" /></td>
+                  <td><strong>COT-00151</strong></td>
+                  <td>
+                    <div>
+                      <strong>Carlos Mendoza Ruiz</strong>
+                      <div class="text-sm text-muted">DNI: 45612378</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>15/10/2025</div>
+                    <div class="text-sm text-muted">Hace 14 días</div>
+                  </td>
+                  <td>
+                    <div>25/10/2025</div>
+                    <div class="text-sm text-danger">Hace 4 días</div>
+                  </td>
+                  <td><strong>S/ 750.00</strong></td>
+                  <td><span class="badge badge-secondary">Vencida</span></td>
+                  <td><span class="text-danger">-4 días</span></td>
+                  <td>
+                    <div class="text-sm">Luis T.</div>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('COT-00151')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="renovarCotizacion('COT-00151')" title="Renovar">
+                      Renovar
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="eliminarCotizacion('COT-00151')" title="Eliminar">
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div class="pagination" style="margin-top: 20px; display: flex; justify-content: center; gap: 5px; flex-wrap: wrap;">
+            <button class="pagination-btn" disabled>Anterior</button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn">2</button>
+            <button class="pagination-btn">3</button>
+            <button class="pagination-btn">...</button>
+            <button class="pagination-btn">11</button>
+            <button class="pagination-btn">Siguiente</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones Masivas -->
+      <div class="card mt-4" style="clear: both; width: 100%;">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Acciones Masivas</h2>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info mb-3">
+            <strong>Información:</strong> Seleccione una o más cotizaciones para realizar acciones masivas
+          </div>
+          
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-secondary" onclick="enviarMasivo()">
+              Enviar Seleccionadas
+            </button>
+            <button class="btn btn-success" onclick="aprobarMasivo()">
+              Aprobar Seleccionadas
+            </button>
+            <button class="btn btn-warning" onclick="renovarMasivo()">
+              Renovar Vencidas
+            </button>
+            <button class="btn btn-danger" onclick="eliminarMasivo()">
+              Eliminar Seleccionadas
+            </button>
+            <button class="btn btn-info" onclick="exportarSeleccionados()">
+              Exportar Seleccionadas
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
+  <style>
+    .stats-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: var(--color-surface);
+      border-radius: 8px;
+      border: 1px solid var(--color-border);
+    }
+
+    .stat-item-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stat-item-value {
+      text-align: right;
+    }
+
+    .card {
+      width: 100%;
+      clear: both;
+      overflow: visible;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 1rem;
+    }
+
+    .pagination-btn {
+      padding: 8px 12px;
+      border: 1px solid var(--color-border);
+      background: white;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.3s;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+
+    .pagination-btn.active {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    let tabActual = 'todas';
+    
     $(function(){ 
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
+      if (!Auth.requireRole(['sucursal', 'admin', 'vendedor'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
+      
+      cargarCotizaciones();
+      inicializarGrafico();
     });
-    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html');
+    
+    function inicializarGrafico() {
+      const ctx = document.getElementById('graficoCotizaciones');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Pendientes', 'Aprobadas', 'Rechazadas', 'Vencidas'],
+          datasets: [{
+            data: [28, 89, 25, 14],
+            backgroundColor: [
+              'rgba(255, 193, 7, 0.8)',
+              'rgba(40, 167, 69, 0.8)',
+              'rgba(220, 53, 69, 0.8)',
+              'rgba(108, 117, 125, 0.8)'
+            ],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+    
+    function cambiarTab(tab) {
+      tabActual = tab;
+      $('.tab').removeClass('active');
+      $(event.target).addClass('active');
+      cargarCotizaciones();
+    }
+    
+    function cargarCotizaciones() {
+      Notifications.show(`Cargando cotizaciones: ${tabActual}`, 'info');
+      // Aquí iría la llamada a la API
+    }
+    
+    $('#formFiltros').on('submit', function(e) {
+      e.preventDefault();
+      Notifications.show('Aplicando filtros...', 'info');
+      cargarCotizaciones();
+    });
+    
+    function limpiarFiltros() {
+      $('#formFiltros')[0].reset();
+      cargarCotizaciones();
+    }
+    
+    function verDetalle(id) {
+      window.location.href = `cotizaciones-detalle.html?id=${id}`;
+    }
+    
+    function editarCotizacion(id) {
+      window.location.href = `cotizaciones-crear.html?editar=${id}`;
+    }
+    
+    function convertirVenta(id) {
+      if (confirm(`¿Desea convertir la cotización ${id} en una venta?`)) {
+        Notifications.show('Convirtiendo cotización a venta...', 'info');
+        setTimeout(() => {
+          Notifications.show('Cotización convertida exitosamente', 'success');
+          // Redirigir a ventas
+          setTimeout(() => {
+            window.location.href = '../ventas/ventas-crear.html?cotizacion=' + id;
+          }, 1500);
+        }, 1500);
+      }
+    }
+    
+    function enviarCotizacion(id) {
+      if (confirm(`¿Desea enviar la cotización ${id} al cliente por email/WhatsApp?`)) {
+        Notifications.show('Enviando cotización...', 'info');
+        setTimeout(() => {
+          Notifications.show('Cotización enviada exitosamente', 'success');
+        }, 1500);
+      }
+    }
+    
+    function imprimirCotizacion(id) {
+      Notifications.show(`Generando PDF de cotización ${id}...`, 'info');
+      setTimeout(() => {
+        window.open(`cotizaciones-detalle.html?id=${id}&print=1`, '_blank');
+      }, 1000);
+    }
+    
+    function duplicarCotizacion(id) {
+      if (confirm(`¿Desea crear una nueva cotización basada en ${id}?`)) {
+        Notifications.show('Duplicando cotización...', 'info');
+        setTimeout(() => {
+          window.location.href = `cotizaciones-crear.html?duplicar=${id}`;
+        }, 1000);
+      }
+    }
+    
+    function renovarCotizacion(id) {
+      if (confirm(`¿Desea renovar la vigencia de la cotización ${id}?`)) {
+        Notifications.show('Renovando cotización...', 'info');
+        setTimeout(() => {
+          Notifications.show('Cotización renovada por 15 días más', 'success');
+          cargarCotizaciones();
+        }, 1500);
+      }
+    }
+    
+    function eliminarCotizacion(id) {
+      if (confirm(`¿Está seguro de eliminar la cotización ${id}?\n\nEsta acción no se puede deshacer.`)) {
+        Notifications.show('Eliminando cotización...', 'info');
+        setTimeout(() => {
+          Notifications.show('Cotización eliminada exitosamente', 'success');
+          cargarCotizaciones();
+        }, 1500);
+      }
+    }
+    
+    function verVenta(id) {
+      Notifications.show('Buscando venta relacionada...', 'info');
+      setTimeout(() => {
+        window.location.href = '../ventas/ventas-detalle.html?id=VEN-00123';
+      }, 1000);
+    }
+    
+    function seleccionarTodos() {
+      const checked = $('#selectAll').prop('checked');
+      $('.select-cotizacion').prop('checked', checked);
+    }
+    
+    function enviarMasivo() {
+      const seleccionados = $('.select-cotizacion:checked').length;
+      
+      if (seleccionados === 0) {
+        Notifications.show('Seleccione al menos una cotización', 'warning');
+        return;
+      }
+      
+      if (confirm(`¿Desea enviar ${seleccionados} cotizaciones?`)) {
+        Notifications.show(`Enviando ${seleccionados} cotizaciones...`, 'info');
+        setTimeout(() => {
+          Notifications.show('Cotizaciones enviadas exitosamente', 'success');
+        }, 2000);
+      }
+    }
+    
+    function aprobarMasivo() {
+      const seleccionados = $('.select-cotizacion:checked').length;
+      
+      if (seleccionados === 0) {
+        Notifications.show('Seleccione al menos una cotización', 'warning');
+        return;
+      }
+      
+      if (confirm(`¿Desea aprobar ${seleccionados} cotizaciones?`)) {
+        Notifications.show(`Aprobando ${seleccionados} cotizaciones...`, 'info');
+        setTimeout(() => {
+          Notifications.show('Cotizaciones aprobadas exitosamente', 'success');
+          cargarCotizaciones();
+        }, 2000);
+      }
+    }
+    
+    function renovarMasivo() {
+      const seleccionados = $('.select-cotizacion:checked').length;
+      
+      if (seleccionados === 0) {
+        Notifications.show('Seleccione al menos una cotización', 'warning');
+        return;
+      }
+      
+      if (confirm(`¿Desea renovar ${seleccionados} cotizaciones por 15 días más?`)) {
+        Notifications.show(`Renovando ${seleccionados} cotizaciones...`, 'info');
+        setTimeout(() => {
+          Notifications.show('Cotizaciones renovadas exitosamente', 'success');
+          cargarCotizaciones();
+        }, 2000);
+      }
+    }
+    
+    function eliminarMasivo() {
+      const seleccionados = $('.select-cotizacion:checked').length;
+      
+      if (seleccionados === 0) {
+        Notifications.show('Seleccione al menos una cotización', 'warning');
+        return;
+      }
+      
+      if (confirm(`¿Está seguro de eliminar ${seleccionados} cotizaciones?\n\nEsta acción no se puede deshacer.`)) {
+        Notifications.show(`Eliminando ${seleccionados} cotizaciones...`, 'info');
+        setTimeout(() => {
+          Notifications.show('Cotizaciones eliminadas exitosamente', 'success');
+          cargarCotizaciones();
+        }, 2000);
+      }
+    }
+    
+    function exportarSeleccionados() {
+      const seleccionados = $('.select-cotizacion:checked').length;
+      
+      if (seleccionados === 0) {
+        Notifications.show('Seleccione al menos una cotización', 'warning');
+        return;
+      }
+      
+      Notifications.show(`Exportando ${seleccionados} cotizaciones...`, 'success');
+    }
+    
+    function exportarExcel() {
+      Notifications.show('Exportando cotizaciones a Excel...', 'success');
+    }
+    
+    function exportarPDF() {
+      Notifications.show('Exportando cotizaciones a PDF...', 'success');
+    }
+    
+    function exportarCotizaciones() {
+      Notifications.show('Exportando todas las cotizaciones...', 'success');
+    }
+    
+    // Búsqueda en tiempo real
+    $('#buscar').on('keyup', function() {
+      const value = $(this).val().toLowerCase();
+      $('#tablaCotizaciones tbody tr').filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+      });
+    });
   </script>
 </body>
 </html>

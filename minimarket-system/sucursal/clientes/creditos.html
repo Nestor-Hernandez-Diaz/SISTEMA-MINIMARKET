@@ -3,38 +3,1124 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sucursal - Créditos de Clientes</title>
+  <title>Sucursal - Gestión de Créditos</title>
   <link rel="stylesheet" href="../assets/css/variables.css" />
   <link rel="stylesheet" href="../assets/css/layout.css" />
   <link rel="stylesheet" href="../assets/css/components.css" />
   <link rel="stylesheet" href="../assets/css/pages.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="/minimarket-system/shared/js/utils.js"></script>
+  <script src="/minimarket-system/shared/js/validation.js"></script>
   <script src="/minimarket-system/shared/js/notifications.js"></script>
   <script src="/minimarket-system/shared/js/api.js"></script>
   <script src="/minimarket-system/shared/js/auth.js"></script>
   <script src="../assets/js/main.js"></script>
 </head>
-<body class="page clientes-page">
+<body class="page creditos-page">
   <div id="navbar"></div>
   <div id="sidebar"></div>
+  
   <main class="main">
-    <div class="container">
-      <h1>Créditos</h1>
-      <div class="actions mb-4">
-        <a class="btn" href="clientes-crear.html">Crear Cliente</a>
-        <a class="btn" href="clientes-editar.html">Editar Cliente</a>
+    <div class="content">
+      <div class="page-header mb-4">
+        <div>
+          <h1 class="text-xl fw-600">Gestión de Créditos</h1>
+          <p class="text-muted text-sm">Administración y seguimiento de cuentas por cobrar</p>
+        </div>
+        <div>
+          <button class="btn btn-success" onclick="registrarPago()">
+            Registrar Pago
+          </button>
+          <button class="btn btn-primary" onclick="nuevoCreditoModal()">
+            Nuevo Crédito
+          </button>
+        </div>
       </div>
-      <div id="tableContainer"></div>
+
+      <!-- Estadísticas de Créditos -->
+      <div class="stats-grid mb-4">
+        <div class="stat-card">
+          <div class="stat-icon bg-primary">S/</div>
+          <div class="stat-content">
+            <div class="stat-label">Total por Cobrar</div>
+            <div class="stat-value">S/ 45,850.50</div>
+            <div class="stat-change text-info">Total pendiente</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-warning">!</div>
+          <div class="stat-content">
+            <div class="stat-label">Créditos Vencidos</div>
+            <div class="stat-value">S/ 12,450.00</div>
+            <div class="stat-change text-danger">23 créditos</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-success">✓</div>
+          <div class="stat-content">
+            <div class="stat-label">Por Vencer (7 días)</div>
+            <div class="stat-value">S/ 8,920.00</div>
+            <div class="stat-change text-warning">15 créditos</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-info">#</div>
+          <div class="stat-content">
+            <div class="stat-label">Créditos Activos</div>
+            <div class="stat-value">87</div>
+            <div class="stat-change text-info">De 45 clientes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico de Créditos -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Estado de Créditos</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="col-md-6">
+              <canvas id="graficoEstadoCreditos" style="max-height: 300px;"></canvas>
+            </div>
+            <div class="col-md-6">
+              <div class="stats-list">
+                <div class="stat-item">
+                  <div class="stat-item-label">
+                    <span class="badge badge-success">Al Día</span>
+                  </div>
+                  <div class="stat-item-value">
+                    <strong>49 créditos</strong>
+                    <div class="text-sm text-muted">S/ 24,480.50</div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-item-label">
+                    <span class="badge badge-warning">Por Vencer</span>
+                  </div>
+                  <div class="stat-item-value">
+                    <strong>15 créditos</strong>
+                    <div class="text-sm text-muted">S/ 8,920.00</div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-item-label">
+                    <span class="badge badge-danger">Vencidos</span>
+                  </div>
+                  <div class="stat-item-value">
+                    <strong>23 créditos</strong>
+                    <div class="text-sm text-muted">S/ 12,450.00</div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-item-label">
+                    <span class="badge badge-dark">Mora Judicial</span>
+                  </div>
+                  <div class="stat-item-value">
+                    <strong>0 créditos</strong>
+                    <div class="text-sm text-muted">S/ 0.00</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pestañas -->
+      <div class="tabs-container mb-4">
+        <div class="tabs">
+          <button class="tab active" onclick="cambiarTab('todos')">
+            Todos los Créditos
+          </button>
+          <button class="tab" onclick="cambiarTab('vigentes')">
+            Vigentes (49)
+          </button>
+          <button class="tab" onclick="cambiarTab('por_vencer')">
+            Por Vencer (15)
+          </button>
+          <button class="tab" onclick="cambiarTab('vencidos')">
+            Vencidos (23)
+          </button>
+          <button class="tab" onclick="cambiarTab('pagados')">
+            Pagados
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Filtros de Búsqueda</h2>
+        </div>
+        <div class="card-body">
+          <form id="formFiltros" class="form-row">
+            <div class="form-group">
+              <label for="buscar" class="form-label">Buscar</label>
+              <input 
+                type="text" 
+                id="buscar" 
+                class="input" 
+                placeholder="Cliente, N° crédito, documento..." 
+              />
+            </div>
+            <div class="form-group">
+              <label for="estado" class="form-label">Estado</label>
+              <select id="estado" class="input">
+                <option value="">Todos</option>
+                <option value="vigente">Vigente</option>
+                <option value="por_vencer">Por Vencer</option>
+                <option value="vencido">Vencido</option>
+                <option value="pagado">Pagado</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="fecha_desde" class="form-label">Fecha Desde</label>
+              <input 
+                type="date" 
+                id="fecha_desde" 
+                class="input" 
+              />
+            </div>
+            <div class="form-group">
+              <label for="fecha_hasta" class="form-label">Fecha Hasta</label>
+              <input 
+                type="date" 
+                id="fecha_hasta" 
+                class="input" 
+              />
+            </div>
+            <div class="form-group">
+              <label for="ordenar" class="form-label">Ordenar por</label>
+              <select id="ordenar" class="input">
+                <option value="fecha_desc">Fecha más reciente</option>
+                <option value="fecha_asc">Fecha más antigua</option>
+                <option value="monto_desc">Mayor monto</option>
+                <option value="monto_asc">Menor monto</option>
+                <option value="vencimiento">Próximo a vencer</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary" style="margin-top: 27px;">
+                Buscar
+              </button>
+              <button type="button" class="btn btn-secondary" style="margin-top: 27px;" onclick="limpiarFiltros()">
+                Limpiar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tabla de Créditos -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-lg fw-600">Lista de Créditos</h2>
+          <div>
+            <button class="btn btn-success btn-sm" onclick="exportarExcel()">
+              Exportar Excel
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="exportarPDF()">
+              Exportar PDF
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-actions mb-3">
+            <div class="table-info">
+              Mostrando <strong>20</strong> de <strong>87</strong> créditos
+            </div>
+            <div>
+              <select class="input" style="width: auto; display: inline-block;">
+                <option>20 por página</option>
+                <option>50 por página</option>
+                <option>100 por página</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table" id="tablaCreditos">
+              <thead>
+                <tr>
+                  <th>
+                    <input type="checkbox" id="selectAll" onclick="seleccionarTodos()" />
+                  </th>
+                  <th>N° Crédito</th>
+                  <th>Cliente</th>
+                  <th>Fecha Emisión</th>
+                  <th>Fecha Vencimiento</th>
+                  <th>Monto Total</th>
+                  <th>Pagado</th>
+                  <th>Saldo</th>
+                  <th>Estado</th>
+                  <th>Días</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="table-danger">
+                  <td><input type="checkbox" class="select-credito" /></td>
+                  <td><strong>CRE-00145</strong></td>
+                  <td>
+                    <div>
+                      <strong>Juan Pérez García</strong>
+                      <div class="text-sm text-muted">DNI: 45678912</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>15/09/2025</div>
+                    <div class="text-sm text-muted">Hace 44 días</div>
+                  </td>
+                  <td>
+                    <div>15/10/2025</div>
+                    <div class="text-sm text-danger">Hace 14 días</div>
+                  </td>
+                  <td><strong>S/ 850.00</strong></td>
+                  <td>S/ 300.00</td>
+                  <td>
+                    <strong class="text-danger">S/ 550.00</strong>
+                  </td>
+                  <td><span class="badge badge-danger">Vencido</span></td>
+                  <td><span class="text-danger">-14 días</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('CRE-00145')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="registrarPagoModal('CRE-00145')" title="Registrar Pago">
+                      Pagar
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="enviarRecordatorio('CRE-00145')" title="Enviar Recordatorio">
+                      Recordar
+                    </button>
+                  </td>
+                </tr>
+                <tr class="table-warning">
+                  <td><input type="checkbox" class="select-credito" /></td>
+                  <td><strong>CRE-00142</strong></td>
+                  <td>
+                    <div>
+                      <strong>María García Torres</strong>
+                      <div class="text-sm text-muted">DNI: 78945612</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>20/10/2025</div>
+                    <div class="text-sm text-muted">Hace 9 días</div>
+                  </td>
+                  <td>
+                    <div>05/11/2025</div>
+                    <div class="text-sm text-warning">En 7 días</div>
+                  </td>
+                  <td><strong>S/ 1,200.00</strong></td>
+                  <td>S/ 400.00</td>
+                  <td>
+                    <strong class="text-warning">S/ 800.00</strong>
+                  </td>
+                  <td><span class="badge badge-warning">Por Vencer</span></td>
+                  <td><span class="text-warning">7 días</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('CRE-00142')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="registrarPagoModal('CRE-00142')" title="Registrar Pago">
+                      Pagar
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="enviarRecordatorio('CRE-00142')" title="Enviar Recordatorio">
+                      Recordar
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="select-credito" /></td>
+                  <td><strong>CRE-00140</strong></td>
+                  <td>
+                    <div>
+                      <strong>Comercial López SAC</strong>
+                      <div class="text-sm text-muted">RUC: 20456789123</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>25/10/2025</div>
+                    <div class="text-sm text-muted">Hace 4 días</div>
+                  </td>
+                  <td>
+                    <div>25/11/2025</div>
+                    <div class="text-sm text-success">En 27 días</div>
+                  </td>
+                  <td><strong>S/ 2,500.00</strong></td>
+                  <td>S/ 500.00</td>
+                  <td>
+                    <strong class="text-primary">S/ 2,000.00</strong>
+                  </td>
+                  <td><span class="badge badge-success">Vigente</span></td>
+                  <td><span class="text-success">27 días</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('CRE-00140')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="registrarPagoModal('CRE-00140')" title="Registrar Pago">
+                      Pagar
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="select-credito" /></td>
+                  <td><strong>CRE-00138</strong></td>
+                  <td>
+                    <div>
+                      <strong>Roberto Sánchez Díaz</strong>
+                      <div class="text-sm text-muted">DNI: 12345678</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>22/10/2025</div>
+                    <div class="text-sm text-muted">Hace 7 días</div>
+                  </td>
+                  <td>
+                    <div>21/11/2025</div>
+                    <div class="text-sm text-success">En 23 días</div>
+                  </td>
+                  <td><strong>S/ 650.00</strong></td>
+                  <td>S/ 0.00</td>
+                  <td>
+                    <strong class="text-primary">S/ 650.00</strong>
+                  </td>
+                  <td><span class="badge badge-success">Vigente</span></td>
+                  <td><span class="text-success">23 días</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('CRE-00138')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="registrarPagoModal('CRE-00138')" title="Registrar Pago">
+                      Pagar
+                    </button>
+                  </td>
+                </tr>
+                <tr class="table-danger">
+                  <td><input type="checkbox" class="select-credito" /></td>
+                  <td><strong>CRE-00135</strong></td>
+                  <td>
+                    <div>
+                      <strong>Ana Rodríguez Vega</strong>
+                      <div class="text-sm text-muted">DNI: 87654321</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>05/09/2025</div>
+                    <div class="text-sm text-muted">Hace 54 días</div>
+                  </td>
+                  <td>
+                    <div>05/10/2025</div>
+                    <div class="text-sm text-danger">Hace 24 días</div>
+                  </td>
+                  <td><strong>S/ 450.00</strong></td>
+                  <td>S/ 0.00</td>
+                  <td>
+                    <strong class="text-danger">S/ 450.00</strong>
+                  </td>
+                  <td><span class="badge badge-danger">Vencido</span></td>
+                  <td><span class="text-danger">-24 días</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('CRE-00135')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="registrarPagoModal('CRE-00135')" title="Registrar Pago">
+                      Pagar
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="enviarRecordatorio('CRE-00135')" title="Enviar Recordatorio">
+                      Recordar
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="select-credito" /></td>
+                  <td><strong>CRE-00132</strong></td>
+                  <td>
+                    <div>
+                      <strong>Carlos Mendoza Ruiz</strong>
+                      <div class="text-sm text-muted">DNI: 45612378</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>18/10/2025</div>
+                    <div class="text-sm text-muted">Hace 11 días</div>
+                  </td>
+                  <td>
+                    <div>17/11/2025</div>
+                    <div class="text-sm text-success">En 19 días</div>
+                  </td>
+                  <td><strong>S/ 980.00</strong></td>
+                  <td>S/ 300.00</td>
+                  <td>
+                    <strong class="text-primary">S/ 680.00</strong>
+                  </td>
+                  <td><span class="badge badge-success">Vigente</span></td>
+                  <td><span class="text-success">19 días</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('CRE-00132')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="registrarPagoModal('CRE-00132')" title="Registrar Pago">
+                      Pagar
+                    </button>
+                  </td>
+                </tr>
+                <tr class="table-warning">
+                  <td><input type="checkbox" class="select-credito" /></td>
+                  <td><strong>CRE-00130</strong></td>
+                  <td>
+                    <div>
+                      <strong>Luis Torres Medina</strong>
+                      <div class="text-sm text-muted">DNI: 78912345</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>24/10/2025</div>
+                    <div class="text-sm text-muted">Hace 5 días</div>
+                  </td>
+                  <td>
+                    <div>03/11/2025</div>
+                    <div class="text-sm text-warning">En 5 días</div>
+                  </td>
+                  <td><strong>S/ 1,500.00</strong></td>
+                  <td>S/ 500.00</td>
+                  <td>
+                    <strong class="text-warning">S/ 1,000.00</strong>
+                  </td>
+                  <td><span class="badge badge-warning">Por Vencer</span></td>
+                  <td><span class="text-warning">5 días</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('CRE-00130')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="registrarPagoModal('CRE-00130')" title="Registrar Pago">
+                      Pagar
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="enviarRecordatorio('CRE-00130')" title="Enviar Recordatorio">
+                      Recordar
+                    </button>
+                  </td>
+                </tr>
+                <tr class="table-success">
+                  <td><input type="checkbox" class="select-credito" /></td>
+                  <td><strong>CRE-00128</strong></td>
+                  <td>
+                    <div>
+                      <strong>Patricia Flores Castro</strong>
+                      <div class="text-sm text-muted">DNI: 65432178</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>10/09/2025</div>
+                    <div class="text-sm text-muted">Hace 49 días</div>
+                  </td>
+                  <td>
+                    <div>10/10/2025</div>
+                    <div class="text-sm text-muted">Hace 19 días</div>
+                  </td>
+                  <td><strong>S/ 750.00</strong></td>
+                  <td>S/ 750.00</td>
+                  <td>
+                    <strong class="text-success">S/ 0.00</strong>
+                  </td>
+                  <td><span class="badge badge-success">Pagado</span></td>
+                  <td><span class="text-success">Completado</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-info" onclick="verDetalle('CRE-00128')" title="Ver Detalle">
+                      Ver
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="imprimirRecibo('CRE-00128')" title="Imprimir Recibo">
+                      Imprimir
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div class="pagination">
+            <button class="pagination-btn" disabled>Anterior</button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn">2</button>
+            <button class="pagination-btn">3</button>
+            <button class="pagination-btn">4</button>
+            <button class="pagination-btn">...</button>
+            <button class="pagination-btn">5</button>
+            <button class="pagination-btn">Siguiente</button>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
+  <!-- Modal Registrar Pago -->
+  <div id="modalPago" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="text-lg fw-600">Registrar Pago</h2>
+        <button class="modal-close" onclick="cerrarModalPago()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="formPago">
+          <div class="alert alert-info mb-3" id="infoCredito">
+            <!-- Se carga dinámicamente -->
+          </div>
+          <div class="form-group">
+            <label for="monto_pago" class="form-label required">Monto del Pago (S/)</label>
+            <input 
+              type="number" 
+              id="monto_pago" 
+              class="input" 
+              step="0.01"
+              min="0"
+              required 
+              placeholder="0.00"
+            />
+            <small class="text-muted">Monto a pagar en esta transacción</small>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="metodo_pago" class="form-label required">Método de Pago</label>
+              <select id="metodo_pago" class="input" required>
+                <option value="">Seleccionar</option>
+                <option value="efectivo">Efectivo</option>
+                <option value="tarjeta">Tarjeta Débito/Crédito</option>
+                <option value="transferencia">Transferencia Bancaria</option>
+                <option value="yape">Yape</option>
+                <option value="plin">Plin</option>
+                <option value="deposito">Depósito Bancario</option>
+              </select>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="fecha_pago" class="form-label required">Fecha del Pago</label>
+              <input 
+                type="date" 
+                id="fecha_pago" 
+                class="input" 
+                required 
+              />
+            </div>
+          </div>
+
+          <div class="form-group" id="campoReferencia" style="display: none;">
+            <label for="referencia_pago" class="form-label">Número de Referencia</label>
+            <input 
+              type="text" 
+              id="referencia_pago" 
+              class="input" 
+              placeholder="Número de operación, voucher, etc."
+            />
+            <small class="text-muted">Número de operación para métodos electrónicos</small>
+          </div>
+
+          <div class="form-group">
+            <label for="observaciones_pago" class="form-label">Observaciones</label>
+            <textarea 
+              id="observaciones_pago" 
+              class="input" 
+              rows="3"
+              placeholder="Observaciones adicionales del pago"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="enviar_recibo" checked />
+              Enviar recibo al cliente por email/WhatsApp
+            </label>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalPago()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Registrar Pago
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalle de Crédito -->
+  <div id="modalDetalle" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <div class="modal-header">
+        <h2 class="text-lg fw-600">Detalle del Crédito</h2>
+        <button class="modal-close" onclick="cerrarModalDetalle()">&times;</button>
+      </div>
+      <div class="modal-body" id="detalleContent">
+        <!-- Se carga dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Nuevo Crédito -->
+  <div id="modalNuevoCredito" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h2 class="text-lg fw-600">Nuevo Crédito</h2>
+        <button class="modal-close" onclick="cerrarModalNuevoCredito()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="formNuevoCredito">
+          <div class="alert alert-warning mb-3">
+            <strong>Importante:</strong> Verifique el límite de crédito del cliente antes de autorizar.
+          </div>
+
+          <div class="form-group">
+            <label for="cliente_credito" class="form-label required">Cliente</label>
+            <select id="cliente_credito" class="input" required onchange="cargarInfoCliente()">
+              <option value="">Seleccionar cliente</option>
+              <option value="1">Juan Pérez García - DNI: 45678912</option>
+              <option value="2">María García Torres - DNI: 78945612</option>
+              <option value="3">Comercial López SAC - RUC: 20456789123</option>
+              <option value="4">Roberto Sánchez Díaz - DNI: 12345678</option>
+            </select>
+          </div>
+
+          <div class="alert alert-info" id="infoCliente" style="display: none;">
+            <!-- Se carga dinámicamente -->
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="monto_credito" class="form-label required">Monto del Crédito (S/)</label>
+              <input 
+                type="number" 
+                id="monto_credito" 
+                class="input" 
+                step="0.01"
+                min="0"
+                required 
+                placeholder="0.00"
+              />
+            </div>
+            <div class="form-group col-md-6">
+              <label for="dias_plazo" class="form-label required">Días de Plazo</label>
+              <select id="dias_plazo" class="input" required onchange="calcularVencimiento()">
+                <option value="">Seleccionar</option>
+                <option value="7">7 días</option>
+                <option value="15">15 días</option>
+                <option value="30">30 días</option>
+                <option value="45">45 días</option>
+                <option value="60">60 días</option>
+                <option value="90">90 días</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="fecha_emision" class="form-label required">Fecha de Emisión</label>
+              <input 
+                type="date" 
+                id="fecha_emision" 
+                class="input" 
+                required 
+              />
+            </div>
+            <div class="form-group col-md-6">
+              <label for="fecha_vencimiento" class="form-label">Fecha de Vencimiento</label>
+              <input 
+                type="date" 
+                id="fecha_vencimiento" 
+                class="input" 
+                readonly
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="descripcion_credito" class="form-label required">Descripción</label>
+            <textarea 
+              id="descripcion_credito" 
+              class="input" 
+              rows="3"
+              required
+              placeholder="Descripción del crédito, productos, etc."
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="observaciones_credito" class="form-label">Observaciones</label>
+            <textarea 
+              id="observaciones_credito" 
+              class="input" 
+              rows="2"
+              placeholder="Observaciones adicionales"
+            ></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalNuevoCredito()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Crear Crédito
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .stats-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: var(--color-surface);
+      border-radius: 8px;
+      border: 1px solid var(--color-border);
+    }
+
+    .stat-item-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stat-item-value {
+      text-align: right;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    $(function(){
-      if (!Auth.requireRole(['sucursal'])) { location.href = '../index.html'; return; }
-      $('#navbar').load('../components/navbar.html');
-      $('#sidebar').load('../components/sidebar.html');
+    let tabActual = 'todos';
+    let creditoActual = null;
+    
+    $(function(){ 
+      if (!Auth.requireRole(['sucursal', 'admin', 'cajero'])) { 
+        location.href = '../index.html'; 
+        return; 
+      }
+      
+      Utils.loadComponent('#navbar', '../components/navbar.html');
+      Utils.loadComponent('#sidebar', '../components/sidebar.html');
+      
+      cargarCreditos();
+      inicializarGrafico();
+      
+      // Establecer fecha actual
+      const hoy = new Date().toISOString().split('T')[0];
+      $('#fecha_pago').val(hoy);
+      $('#fecha_emision').val(hoy);
     });
-    Utils.loadComponent('#tableContainer', '/minimarket-system/shared/components/table-template.html');
+    
+    function inicializarGrafico() {
+      const ctx = document.getElementById('graficoEstadoCreditos');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Al Día', 'Por Vencer', 'Vencidos', 'Mora Judicial'],
+          datasets: [{
+            data: [49, 15, 23, 0],
+            backgroundColor: [
+              'rgba(40, 167, 69, 0.8)',
+              'rgba(255, 193, 7, 0.8)',
+              'rgba(220, 53, 69, 0.8)',
+              'rgba(52, 58, 64, 0.8)'
+            ],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+    
+    function cambiarTab(tab) {
+      tabActual = tab;
+      $('.tab').removeClass('active');
+      $(event.target).addClass('active');
+      cargarCreditos();
+    }
+    
+    function cargarCreditos() {
+      Notifications.show(`Cargando créditos: ${tabActual}`, 'info');
+      // Aquí iría la llamada a la API
+    }
+    
+    $('#formFiltros').on('submit', function(e) {
+      e.preventDefault();
+      Notifications.show('Aplicando filtros...', 'info');
+      cargarCreditos();
+    });
+    
+    function limpiarFiltros() {
+      $('#formFiltros')[0].reset();
+      cargarCreditos();
+    }
+    
+    function registrarPago() {
+      Notifications.show('Seleccione un crédito para registrar el pago', 'info');
+    }
+    
+    function registrarPagoModal(id) {
+      creditoActual = id;
+      
+      // Cargar información del crédito
+      $('#infoCredito').html(`
+        <strong>Crédito:</strong> ${id}<br>
+        <strong>Cliente:</strong> Juan Pérez García<br>
+        <strong>Saldo Pendiente:</strong> <span class="text-danger fw-600">S/ 550.00</span><br>
+        <strong>Fecha Vencimiento:</strong> 15/10/2025 (Vencido)
+      `);
+      
+      $('#modalPago').fadeIn(200);
+    }
+    
+    $('#metodo_pago').on('change', function() {
+      const metodo = $(this).val();
+      if (metodo && metodo !== 'efectivo') {
+        $('#campoReferencia').fadeIn(200);
+      } else {
+        $('#campoReferencia').fadeOut(200);
+      }
+    });
+    
+    $('#formPago').on('submit', function(e) {
+      e.preventDefault();
+      
+      const monto = parseFloat($('#monto_pago').val());
+      const metodo = $('#metodo_pago option:selected').text();
+      
+      Notifications.show('Registrando pago...', 'info');
+      
+      setTimeout(() => {
+        Notifications.show(`Pago de S/ ${monto.toFixed(2)} registrado exitosamente vía ${metodo}`, 'success');
+        cerrarModalPago();
+        cargarCreditos();
+      }, 1500);
+    });
+    
+    function cerrarModalPago() {
+      $('#modalPago').fadeOut(200);
+      $('#formPago')[0].reset();
+    }
+    
+    function verDetalle(id) {
+      Notifications.show(`Cargando detalle del crédito ${id}...`, 'info');
+      
+      $('#detalleContent').html(`
+        <div class="form-row mb-4">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="text-md fw-600">Información del Crédito</h3>
+              </div>
+              <div class="card-body">
+                <p><strong>N° Crédito:</strong> ${id}</p>
+                <p><strong>Estado:</strong> <span class="badge badge-danger">Vencido</span></p>
+                <p><strong>Fecha Emisión:</strong> 15/09/2025</p>
+                <p><strong>Fecha Vencimiento:</strong> 15/10/2025</p>
+                <p><strong>Días de Plazo:</strong> 30 días</p>
+                <p><strong>Días Vencidos:</strong> <span class="text-danger">14 días</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="text-md fw-600">Datos del Cliente</h3>
+              </div>
+              <div class="card-body">
+                <p><strong>Cliente:</strong> Juan Pérez García</p>
+                <p><strong>Documento:</strong> DNI 45678912</p>
+                <p><strong>Teléfono:</strong> 987-654-321</p>
+                <p><strong>Email:</strong> juan.perez@email.com</p>
+                <p><strong>Límite Crédito:</strong> S/ 1,000.00</p>
+                <p><strong>Crédito Disponible:</strong> S/ 450.00</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header">
+            <h3 class="text-md fw-600">Resumen Financiero</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="col-md-3">
+                <div class="stat-card">
+                  <div class="stat-label">Monto Total</div>
+                  <div class="stat-value">S/ 850.00</div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-card">
+                  <div class="stat-label">Pagado</div>
+                  <div class="stat-value text-success">S/ 300.00</div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-card">
+                  <div class="stat-label">Saldo</div>
+                  <div class="stat-value text-danger">S/ 550.00</div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-card">
+                  <div class="stat-label">Mora/Interés</div>
+                  <div class="stat-value text-warning">S/ 0.00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header">
+            <h3 class="text-md fw-600">Historial de Pagos</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Monto</th>
+                    <th>Método</th>
+                    <th>Referencia</th>
+                    <th>Usuario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>20/09/2025 10:30</td>
+                    <td><strong>S/ 300.00</strong></td>
+                    <td>Efectivo</td>
+                    <td>-</td>
+                    <td>Cajero 1</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" onclick="cerrarModalDetalle()">Cerrar</button>
+          <button class="btn btn-warning" onclick="enviarRecordatorio('${id}')">Enviar Recordatorio</button>
+          <button class="btn btn-success" onclick="registrarPagoModal('${id}')">Registrar Pago</button>
+          <button class="btn btn-primary" onclick="imprimirRecibo('${id}')">Imprimir</button>
+        </div>
+      `);
+      
+      $('#modalDetalle').fadeIn(200);
+    }
+    
+    function cerrarModalDetalle() {
+      $('#modalDetalle').fadeOut(200);
+    }
+    
+    function nuevoCreditoModal() {
+      $('#modalNuevoCredito').fadeIn(200);
+    }
+    
+    function cerrarModalNuevoCredito() {
+      $('#modalNuevoCredito').fadeOut(200);
+      $('#formNuevoCredito')[0].reset();
+      $('#infoCliente').hide();
+    }
+    
+    function cargarInfoCliente() {
+      const clienteId = $('#cliente_credito').val();
+      if (clienteId) {
+        $('#infoCliente').html(`
+          <strong>Límite de Crédito:</strong> S/ 1,000.00<br>
+          <strong>Crédito Disponible:</strong> S/ 1,000.00<br>
+          <strong>Créditos Activos:</strong> 0<br>
+          <strong>Días de Crédito:</strong> 30 días
+        `).fadeIn(200);
+      } else {
+        $('#infoCliente').fadeOut(200);
+      }
+    }
+    
+    function calcularVencimiento() {
+      const fechaEmision = new Date($('#fecha_emision').val());
+      const diasPlazo = parseInt($('#dias_plazo').val());
+      
+      if (fechaEmision && diasPlazo) {
+        const fechaVencimiento = new Date(fechaEmision);
+        fechaVencimiento.setDate(fechaVencimiento.getDate() + diasPlazo);
+        $('#fecha_vencimiento').val(fechaVencimiento.toISOString().split('T')[0]);
+      }
+    }
+    
+    $('#fecha_emision').on('change', calcularVencimiento);
+    
+    $('#formNuevoCredito').on('submit', function(e) {
+      e.preventDefault();
+      
+      Notifications.show('Creando crédito...', 'info');
+      
+      setTimeout(() => {
+        Notifications.show('Crédito creado exitosamente', 'success');
+        cerrarModalNuevoCredito();
+        cargarCreditos();
+      }, 1500);
+    });
+    
+    function enviarRecordatorio(id) {
+      if (confirm(`¿Desea enviar recordatorio de pago al cliente del crédito ${id}?`)) {
+        Notifications.show('Enviando recordatorio por WhatsApp y Email...', 'info');
+        setTimeout(() => {
+          Notifications.show('Recordatorio enviado exitosamente', 'success');
+        }, 1500);
+      }
+    }
+    
+    function imprimirRecibo(id) {
+      Notifications.show(`Generando recibo del crédito ${id}...`, 'info');
+      setTimeout(() => {
+        window.print();
+      }, 1000);
+    }
+    
+    function seleccionarTodos() {
+      const checked = $('#selectAll').prop('checked');
+      $('.select-credito').prop('checked', checked);
+    }
+    
+    function exportarExcel() {
+      Notifications.show('Exportando créditos a Excel...', 'success');
+    }
+    
+    function exportarPDF() {
+      Notifications.show('Exportando créditos a PDF...', 'success');
+    }
+    
+    // Búsqueda en tiempo real
+    $('#buscar').on('keyup', function() {
+      const value = $(this).val().toLowerCase();
+      $('#tablaCreditos tbody tr').filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+      });
+    });
   </script>
 </body>
 </html>
